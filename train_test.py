@@ -6,6 +6,15 @@ from evaluation import labels2Parsemetsv
 from sklearn.model_selection import KFold
 from models.tag_models import Tagger 
 
+from keras.backend.tensorflow_backend import set_session
+import tensorflow as tf
+
+gpu_options = tf.GPUOptions(visible_device_list="1")
+config = tf.ConfigProto(gpu_options=gpu_options)
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+set_session(sess)
+
 class Train_Test():
 	"""This class contains methods to train, test or cross-validate models. 
 

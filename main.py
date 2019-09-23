@@ -8,8 +8,8 @@ from models.tag_models import Tagger
 from evaluation import labels2Parsemetsv
 
 DEVorTEST = "TEST"		    	# 'TEST' or 'DEV' or 'CROSS_VAL'
-LANG = "EN_SAMPLE"		    	# specify the name of the language (i.e. EN|FR|FA|DE)
-MODEL = "model_ELMo_spect_gcn"		# specify the name of the training model to be used (models are defined in rnn_models.py)
+LANG = "EN"		    	# specify the name of the language (i.e. EN|FR|FA|DE)
+MODEL = "model_ELMo_H_combined"		# specify the name of the training model to be used (models are defined in rnn_models.py)
 POS = False				# set True to use POS information (This is set to False in the reported results as the improvement was not consistent across all the models)
 DEP_ADJACENCY_GCN = True    		# True for models that require adjacency, and False otherwise
 EPOCHS = 50				# the number of epochs for trainig the model 

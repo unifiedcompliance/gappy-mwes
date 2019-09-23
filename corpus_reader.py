@@ -1,6 +1,6 @@
 
 import os
-from corpus import Corpus
+from mwe import Mwe
 import pickle
 
 class Corpus_reader:
@@ -12,18 +12,24 @@ class Corpus_reader:
 
 	def __init__(self, path):
 
-		parsemeCorpus = Corpus(path)
-		self.train_sents = None
-		self.dev_sents = None
-		self.test_sents = None
-		if parsemeCorpus.sentences:
-                        self.train_sents = parsemeCorpus.sentences
-		if parsemeCorpus.devSents:
-                        self.dev_sents = parsemeCorpus.devSents
-		if parsemeCorpus.testSents:
-                        self.test_sents = parsemeCorpus.testSents
-		#self.test_sents, self.devMweNum = parsemeCorpus.readCuptFile(path+"test.cupt")
+		mweCorpus = Mwe(path)
+		self.train_sents = mweCorpus.sent_extractor(mweCorpus.train_collection)
+		self.dev_sents = mweCorpus.sent_extractor(mweCorpus.dev_collection)
+		self.test_sents = mweCorpus.sent_extractor(mweCorpus.test_collection)
+	
 
+	def read(self, sents):
+		seqs = []
+		for i in sents:
+			seqs_i = []
+			for j in i:
+				j_list = j.split('\t')
+				seqs_i.append((j_list[1], j_list[2], j_list[3], int(j_list[5]), j_list[6], j_list[7]))
+			seqs.append(seqs_i)
+		
+		return seqs
+	
+	"""
 	def read(self, sents):
 		seqs = []
 		for s in range(0, len(sents)):
@@ -73,3 +79,4 @@ for i in s[7:10]:
 		print(j)
 	print()
 '''
+"""

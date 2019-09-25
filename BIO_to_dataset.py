@@ -35,7 +35,7 @@ def labels2MWE(labels, mainTest, predOut):
     mainTest: the file that contains predicted labels should be matched with gold file
     predOut: output
 
-    This function is used to convert IOB labeling back to the Parseme format for evaluation.
+    This function is used to convert BIO labeling back to the dataset format for evaluation.
     """
     with open(mainTest) as bt:
         mainTest = bt.readlines()

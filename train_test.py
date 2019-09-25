@@ -3,6 +3,7 @@ import numpy as np
 from keras.callbacks import ModelCheckpoint
 from evaluation import labels2Parsemetsv
 from BIO_to_dataset import labels2MWE
+from metrics import metrics_f1_score
 
 from sklearn.model_selection import KFold
 from models.tag_models import Tagger 
@@ -110,14 +111,19 @@ class Train_Test():
 		    labels1 = pickle.load(f)
 		if self.data.testORdev == "TEST":	# we have DEV as part of training and are evaluating the test
 			labels2MWE(labels1, data_path+'{}/test.txt'.format(self.data.lang), prediction_file_name+'_system.txt') 
+			
+			precision, recall, f1_score = metrics_f1_score(data_path+"{}/test.txt".format(self.data.lang), prediction_file_name+'_system.txt')
+			print("Precision: {}, Recall: {}, F1 score: {}".format(precision, recall, f1_score))
 
 			#with open(self.res_dir + '/eval'.format(self.data.lang)+self.tagger_name+'.txt', 'w') as f:
 			#	f.write(subprocess.check_output([data_path+"bin/evaluate_v1.py", "--train", data_path+"{}/train.cupt".format(self.data.lang), "--gold", data_path+"{}/test.cupt".format(self.data.lang), "--pred", prediction_file_name+"_system.cupt" ]).decode())
 		else:
-			labels2Parsemetsv(labels1, data_path+'/{}/dev.cupt'.format(self.data.lang), prediction_file_name+'_system.cupt')
+			labels2MWE(labels1, data_path+'{}/dev.txt'.format(self.data.lang), prediction_file_name+'_system.txt')
 
-			with open(self.res_dir + '/eval'.format(self.data.lang)+self.tagger_name+'.txt', 'w') as f:
-				f.write(subprocess.check_output([data_path+"bin/evaluate_v1.py", "--train", data_path+"{}/train.cupt".format(self.data.lang), "--gold", data_path+"{}/dev.cupt".format(self.data.lang), "--pred", prediction_file_name+"_system.cupt" ]).decode())
+			precision, recall, f1_score = metrics_f1_score(data_path+"{}/dev.txt".format(self.data.lang), prediction_file_name+'_system.txt')
+			print("Precision: {}, Recall: {}, F1 score: {}".format(precision, recall, f1_score))
+			#with open(self.res_dir + '/eval'.format(self.data.lang)+self.tagger_name+'.txt', 'w') as f:
+			#	f.write(subprocess.check_output([data_path+"bin/evaluate_v1.py", "--train", data_path+"{}/train.cupt".format(self.data.lang), "--gold", data_path+"{}/dev.cupt".format(self.data.lang), "--pred", prediction_file_name+"_system.cupt" ]).decode())
 
 	def cross_validation(self, epoch, batch_size, data_path):
 		if self.data.testORdev == "CROSS_VAL": 

@@ -1,4 +1,4 @@
-from Input_Output_task import inputoutput, get_num_classes, get_idx, _predTest, get_words_tags
+from Input_Output_task import inputoutput, get_num_classes, get_idx, _predTest
 import stanfordnlp
 from spacy_stanfordnlp import StanfordNLPLanguage
 
@@ -30,18 +30,44 @@ def get_inputs_X_test_enc(sent, model):
     print("[INFO] Done")
     return inputs, X_test_enc
 
-def extract_mwe(words, tags):
+def get_words_pos_upos_tags(predTest, doc):
+    words = []
+    tags = []
+    pos = []
+    upos = []
+    characterOffsetBegin = []
+    characterOffsetEnd = []
+    for i in predTest:
+        #print(i[0],i[1],i[7])
+        words.append(i[1])
+        pos.append(i[3])
+        upos.append(i[4])
+        tags.append(i[7])
+    
+    for token in doc:
+        characterOffsetBegin.append(token.idx)
+        characterOffsetEnd.append(token.idx + len(token.text))
+    
+    
+    return words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd
+
+
+def extract_mwe(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd):
     vis = [True]*len(words)
     mwe_list = []
     for idx,val in enumerate(tags):
         name = words[idx]
         if val == 'B' and vis[idx]:
-            mwe = [{"index":idx+1, "word":name, "mwe": val}]
+            mwe = [{"index":idx+1, "word":name, "pos":pos[idx], "upos":upos[idx], "mwe": val,
+                    "characterOffsetBegin": characterOffsetBegin[idx],
+                    "characterOffsetEnd": characterOffsetEnd[idx]}]
             #print(name, val)
             vis[idx] = False
             for j in range(idx+1, len(tags)):
                 if tags[j] == 'I':
-                    mwe.append({"index":j+1, "word":words[j], "mwe": tags[j]})
+                    mwe.append({"index":j+1, "word":words[j], "pos":pos[j], "upos":upos[j],
+                                "mwe": tags[j], "characterOffsetBegin": characterOffsetBegin[j],
+                                "characterOffsetEnd": characterOffsetEnd[j]})
                     #print(words[j], tags[j])
                     vis[j] = False
                 else:
@@ -49,10 +75,11 @@ def extract_mwe(words, tags):
             #print(mwe)
             mwe_list.append(mwe)
         elif val=='I' and vis[idx]:
-            mwe_list.append([{"index":idx+1, "word":name, "mwe": val}])
+            mwe_list.append([{"index":idx+1, "word":name, "pos":pos[idx], "upos":upos[idx], 
+                              "mwe": val,"characterOffsetBegin": characterOffsetBegin[idx],
+                              "characterOffsetEnd": characterOffsetEnd[idx]}])
             vis[idx] = False
     return mwe_list
-
 
 def analysis(preds, X_test_enc, sent):
 
@@ -61,15 +88,16 @@ def analysis(preds, X_test_enc, sent):
     n_classes, w2idx, idx2l, max_length, input_dim = utils()
     predTest = _predTest(preds, X_test_enc, doc, idx2l)
     print("[INFO} Done")
-    words, tags = get_words_tags(predTest[0])
-    mwe_list = extract_mwe(words, tags)
+    words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd = get_words_pos_upos_tags(predTest[0], doc)
+    mwe_list = extract_mwe(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd)
+
     
     annotated_sentences = []
     tokens = []
     deps = []
     #mwe = []
-    characterOffsetBegin = 0
-    characterOffsetEnd = 0
+    #characterOffsetBegin = 0
+    #characterOffsetEnd = 0
     for token in doc:
         #print(token)
         index = token.i + 1 
@@ -82,7 +110,8 @@ def analysis(preds, X_test_enc, sent):
         dep = token.dep_
         governor = token.head.i + 1
         governorGloss = str(token.head)
-        characterOffsetEnd += len(word)
+        characterOffsetBegin = token.idx
+        characterOffsetEnd = characterOffsetBegin + len(word)
         #print("{} - {} -> {}".format(word, characterOffsetBegin, characterOffsetEnd))
         #print("{} - {} -> {}".format(word, token.i, token.))
         tokens.append({'index': index, 'word': word, 'lemma': lemma, 'characterOffsetBegin':characterOffsetBegin, 'characterOffsetEnd':characterOffsetEnd, 'pos': pos, 'upos': upos,'mwe':mwe_tag})
@@ -95,8 +124,8 @@ def analysis(preds, X_test_enc, sent):
         #else:
         #    characterOffsetBegin = characterOffsetEnd
 
-        characterOffsetBegin = characterOffsetEnd + 1   
-        characterOffsetEnd = characterOffsetBegin
+        #characterOffsetBegin = characterOffsetEnd + 1   
+        #characterOffsetEnd = characterOffsetBegin
         
     annotated_sentences.append({'index': 0,'sentence':str(doc), 'basicDependencies': deps, 'tokens': tokens, 'mwe': mwe_list})
 

@@ -66,6 +66,7 @@ def index():
         if sent:
             #model = load_model()
             #model, graph, session = models_stored_for_later[0], models_stored_for_later[1], models_stored_for_later[2]
+            sent = sent.strip()
             print(model.summary())
             print("Starting Analysis")
             #model._make_predict_function()

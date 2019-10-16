@@ -28,12 +28,12 @@ def read(sents):
 def mwe_tag_index_extractor(tags):
     mwe_tags_start = {}
     for idx, sentence in enumerate(tags):
-        print("Working on index {}".format(idx))
+        #print("Working on index {}".format(idx))
         mwe_tags_start[idx] = []
         for i,j in enumerate(sentence):
             mwe_indices = []
             if j[2] == 'B':
-                print("------- Found B-tag at {}".format(i))
+                #print("------- Found B-tag at {}".format(i))
                 k = i
                 mwe_indices.append(k)
                 if k+1 < len(sentence):
@@ -41,7 +41,7 @@ def mwe_tag_index_extractor(tags):
                 else:
                     break
                 while sentence[k][2] == 'I':
-                    print("---------------- Appended k: {}".format(k))
+                    #print("---------------- Appended k: {}".format(k))
                     mwe_indices.append(k)
                     k += 1
                     if k >= len(sentence):
@@ -60,25 +60,25 @@ def metrics(test_actual_mwe_tags, test_pred_mwe_tags):
     for k,v in test_actual_mwe_tags.items():
         test_actual_tag_indices = v
         test_pred_tag_indices = test_pred_mwe_tags[k]
-        print(k)
-        print(test_actual_tag_indices)
-        print(test_pred_tag_indices)
+        #print(k)
+        #print(test_actual_tag_indices)
+        #print(test_pred_tag_indices)
         exact_match_tp = 0
         exact_match_fn = 0
         exact_match_fp = 0
         for i in test_actual_tag_indices:
-            print("Searching for a match for {}".format(i))
+            #print("Searching for a match for {}".format(i))
             if i in test_pred_tag_indices:
-                print("True positive")
+                #print("True positive")
                 exact_match_tp += 1
             else:
-                print("True Negative")
+                #print("True Negative")
                 exact_match_fn += 1
 
         for i in test_pred_tag_indices:
-            print("Searching for a match for {} in the actual test".format(i))
+            #print("Searching for a match for {} in the actual test".format(i))
             if i not in test_actual_tag_indices:
-                print("False positive")
+                #print("False positive")
                 exact_match_fp += 1
 
         #tp_list.append(exact_match_tp)
@@ -121,4 +121,4 @@ def metrics_f1_score(actual_test_file, pred_test_file):
 
     f1_score = 2 / ((1.0/recall) + (1.0/precision))
 
-    return f1_score
+    return precision, recall, f1_score

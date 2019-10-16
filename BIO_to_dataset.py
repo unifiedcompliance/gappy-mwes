@@ -29,18 +29,18 @@ def sent_extractor(collection):
 
 
 
-def labels2MWE(labels, mainTest, predOut):
+def labels2MWE(labels, mainTest_sents, predOut):
     """
     labels: predicted labels
     mainTest: the file that contains predicted labels should be matched with gold file
     predOut: output
 
     This function is used to convert BIO labeling back to the dataset format for evaluation.
-    """
-    with open(mainTest) as bt:
-        mainTest = bt.readlines()
+    #with open(mainTest) as bt:
+    #    mainTest = bt.readlines()
 
-    mainTest_sents = sent_extractor(mainTest)
+    #mainTest_sents = sent_extractor(mainTest)
+    """
     mainTest_split  = read(mainTest_sents)
     predTest_split = copy.deepcopy(mainTest_split)
 

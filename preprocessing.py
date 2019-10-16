@@ -77,7 +77,9 @@ class Data(object):
 		y_train = [[x[5] for x in elem] for elem in train]
 		pos_train = [[x[2] for x in elem] for elem in train]
 		self.dep_train = [[x[3] for x in elem] for elem in train]
+		print("Train max sentence length:", len(max(X_train, key=len)))
 		if self.lang != "EN" and self.testORdev == "TEST":
+			print("yo yo")
 			dev = c.read(c.dev_sents)
 			#dev_file = pickle.load(open('../{}/{}.pkl'.format(self.lang, self.dev), 'rb'))
 			X_train = X_train + [[x[0].replace('.',"$period$").replace("\\", "$backslash$").replace("/", "$backslash$") for x in elem] for elem in dev]
@@ -99,9 +101,20 @@ class Data(object):
 		pos_test = [[x[2] for x in elem] for elem in test]
 		self.dep_test = [[x[3] for x in elem] for elem in test]
 		### ### ###
+		print("Train max sentence length:", len(max(X_train, key=len)))
+		print("Test max sentence length:", len(max(X_test, key=len)))
 		self.max_length = len(max(X_train+X_test, key=len))
 		print("max sentence length:", self.max_length)
-		 
+		for idx in y_train:
+			for i,j in enumerate(idx):
+				if  j== '':
+					idx[i] = 'I'
+		
+		for idx in y_test:
+			for i,j in enumerate(idx):
+				if  j== '':
+					idx[i] = 'I'
+
 		######################################
 
 		words = list(set([elem for sublist in X_train+X_test for elem in sublist]))
@@ -114,6 +127,7 @@ class Data(object):
 		self.w2idx = {word:i+1 for (i,word) in enumerate(words)}
 		#w2idx = encode(X_train+X_test)
 		self.l2idx = self.encode(y_train+y_test)
+		print(self.l2idx)
 		self.pos2idx = self.encode(pos_train+pos_test)
 
 		# encode() maps each word to a unique index, starting from 1. We additionally incerement all the 
@@ -139,6 +153,8 @@ class Data(object):
 
 		self.y_train_enc = [[self.l2idx[l] for l in labels] for labels in y_train]
 		self.y_test_enc = [[self.l2idx[l] for l in labels] for labels in y_test]
+		print(self.y_train_enc)
+		print(self.y_test_enc)
 
 		self.pos_train_enc = [[self.pos2idx[p] for p in poses] for poses in pos_train]
 		self.pos_test_enc = [[self.pos2idx[p] for p in poses] for poses in pos_test]
@@ -234,7 +250,7 @@ class Data(object):
 		if not self.elmo_dir:
 			pass # do nothing if there is no path to a pre-trained elmo avialable 
 		else:
-			filename = self.elmo_dir + '/ELMo_{}'.format(self.lang)
+			filename = self.elmo_dir + '/ELMO_EN.hdf5'#.format(self.lang)
 			elmo_dict = h5py.File(filename, 'r')
 			lst = []
 			not_in_dict = 0

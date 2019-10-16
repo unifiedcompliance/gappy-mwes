@@ -65,6 +65,7 @@ class Train_Test():
 		if self.data.depAdjacency_gcn:
 			inputs += self.data.train_adjacency_matrices
 		print("len(inputs)", len(inputs))
+		print(self.data.y_train_enc.shape)
 		if len(inputs) == 1:
 			self.tagger.fit(inputs[0],           
 			 				self.data.y_train_enc, 
@@ -84,18 +85,30 @@ class Train_Test():
 	def test(self, data_path):
 		inputs = []
 		if "elmo" in self.tagger_name.lower():
+			print('elmo')
 			inputs = [self.data.test_weights]
 		if self.w2v:
+			print('word2vec')
 			inputs += [self.data.X_test_enc]
 		if self.pos:
+			print('pos encoding')
 			inputs += [self.data.pos_test_enc]
 		if self.data.depAdjacency_gcn:
+			print('adjacency matrices')
 			inputs += self.data.test_adjacency_matrices
 		
+		with open('inputs.pkl', 'wb') as f:
+			pickle.dump(inputs, f)
+
 		if len(inputs)==1:
+			print("Input length:1 ")
 			preds = self.tagger.predict(inputs[0], batch_size=16, verbose=1)
 		else:
+			print("Not 1")
 			preds = self.tagger.predict(inputs, batch_size=16, verbose=1)
+		
+		with open('preds.pkl', 'wb') as f:
+			pickle.dump(preds, f)
 
 		final_preds = []
 		for i in range(len(self.data.X_test_enc)):

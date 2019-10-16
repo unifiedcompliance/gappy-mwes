@@ -148,7 +148,7 @@ def model_ELMo_H_combined(max_length, input_dim, n_classes):
 
 		# Build the model
 		model = Model(inputs=[X_in] + A_in, outputs=output)
-		model.load_weights('results/EN_GCN_model_ELMo_H_combined_results_50/weights-improvement-50-1.00.hdf5')
+		model.load_weights('../results/EN_GCN_model_ELMo_H_combined_results_50/weights-improvement-50-1.00.hdf5')
 		model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['mae','acc'])
 		#print(model.summary())
 		return model
@@ -205,36 +205,34 @@ def extract_mwe(words, tags):
     return mwe_list
 
 
-def main():
+def inputoutput(doc, n_classes, w2idx, idx2l, max_length = 265, input_dim = 1024):
 
     #input_str = "{risk factor} Determine whether the institution has appropriate standards and processes for risk-based auditing and internal risk assessments that : Describe the process for assessing and documenting risk and control factors and its application in the formulation of audit plans , resource allocations , audit scopes , and audit cycle frequency"
-    print("Please enter the sentence")
-    input_str = input()
-    snlp = stanfordnlp.Pipeline(lang="en", treebank='en_lines')
-    nlp = StanfordNLPLanguage(snlp)
-    doc = nlp(input_str)
+    #snlp = stanfordnlp.Pipeline(lang="en", treebank='en_lines')
+    #nlp = StanfordNLPLanguage(snlp)
+    #doc = nlp(sentence)
     sents = get_sents(doc)
     test = read_sents(sents)
     X_test = [[x[0].replace('.',"$period$").replace("\\", "$backslash$").replace("/", "$backslash$") for x in elem] for elem in test]
     dep_test = [[x[3] for x in elem] for elem in test]
-    max_length = 265
+    #max_length = 265
 
-    with open('docs.pkl', 'rb') as f:
-        docs = pickle.load(f)
+    #with open('../docs.pkl', 'rb') as f:
+    #    docs = pickle.load(f)
 
-    words = docs['words']
+    #words = docs['words']
     #vocab_size = docs['vocab_size']
-    n_classes = docs['n_classes']
+    #n_classes = docs['n_classes']
     #n_poses = docs['n_poses']
 
-    with open('idxs.pkl', 'rb') as f:
-        idxs = pickle.load(f)
+    #with open('../idxs.pkl', 'rb') as f:
+    #    idxs = pickle.load(f)
 
-    w2idx = idxs['w2idx']
+    #w2idx = idxs['w2idx']
     #l2idx = idxs['l2idx']
     #pos2idx = idxs['pos2idx']
     #idx2w = idxs['idx2w']
-    idx2l = idxs['idx2l']
+    #idx2l = idxs['idx2l']
     #idx2pos = idxs['idx2pos']
 
     X_test_enc = [w2idx[w] for w in X_test[0]]
@@ -245,20 +243,62 @@ def main():
     test_adjacency_matrices = [test_adjacency]
     inputs = [test_weights]
     inputs += test_adjacency_matrices
-    input_dim = len(test_weights[0][0])
-    elmo_h_combined = model_ELMo_H_combined(max_length, input_dim, n_classes)
-    preds = elmo_h_combined.predict(inputs, batch_size=16, verbose=1)
+    #input_dim = len(test_weights[0][0])
+    #model = model_ELMo_H_combined(max_length, input_dim, n_classes)
+    return inputs, X_test_enc
+
+def _predTest(preds, X_test_enc, doc, idx2l):
     final_preds = get_final_preds(X_test_enc, preds, idx2l)
+    sents = get_sents(doc)
     predTest = labels2MWE(final_preds, [sents])
+
+    return predTest
+
+def get_num_classes(DOC_PATH):
+    
+    with open(DOC_PATH, 'rb') as f:
+        docs = pickle.load(f)
+    
+    n_classes = docs['n_classes']
+
+    return n_classes
+
+def get_idx(IDX_PATH):
+    
+    with open(IDX_PATH, 'rb') as f:
+        idxs = pickle.load(f)
+
+    w2idx = idxs['w2idx']
+    idx2l = idxs['idx2l']
+
+    return w2idx, idx2l
+
+if __name__ == "__main__":
+    print("Please enter the sentence")
+    input_str = input()
+    
+    DOC_PATH = '../docs.pkl'
+    IDX_PATH = '../idxs.pkl'
+    n_classes = get_num_classes(DOC_PATH)
+    w2idx, idx2l = get_idx(IDX_PATH) 
+    max_length = 265
+    input_dim = 1024
+    
+    model = model_ELMo_H_combined(max_length, input_dim, n_classes)
+
+    snlp = stanfordnlp.Pipeline(lang="en", treebank='en_lines')
+    nlp = StanfordNLPLanguage(snlp)
+    doc = nlp(input_str)
+    inputs, X_test_enc = inputoutput(doc, n_classes, w2idx, idx2l, max_length, input_dim)
+    preds = model.predict(inputs, batch_size=16, verbose=1)
+    predTest = _predTest(preds, X_test_enc, doc, idx2l)
+
     words, tags = get_words_tags(predTest[0])
     mwe_list = extract_mwe(words, tags)
 
     print("The multi word expressions are:")
     for mwe in mwe_list:
         print(mwe)
-
-
-main()
 
 
 

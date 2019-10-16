@@ -148,7 +148,7 @@ def model_ELMo_H_combined(max_length, input_dim, n_classes):
 
 		# Build the model
 		model = Model(inputs=[X_in] + A_in, outputs=output)
-		model.load_weights('../results/EN_GCN_model_ELMo_H_combined_results_50/weights-improvement-50-1.00.hdf5')
+		model.load_weights('results/EN_GCN_model_ELMo_H_combined_results_50/weights-improvement-50-1.00.hdf5')
 		model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['mae','acc'])
 		#print(model.summary())
 		return model
@@ -277,8 +277,8 @@ if __name__ == "__main__":
     print("Please enter the sentence")
     input_str = input()
     
-    DOC_PATH = '../docs.pkl'
-    IDX_PATH = '../idxs.pkl'
+    DOC_PATH = 'docs.pkl'
+    IDX_PATH = 'idxs.pkl'
     n_classes = get_num_classes(DOC_PATH)
     w2idx, idx2l = get_idx(IDX_PATH) 
     max_length = 265

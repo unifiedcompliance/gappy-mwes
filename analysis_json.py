@@ -1,11 +1,10 @@
 from Input_Output_task import inputoutput, get_num_classes, get_idx, _predTest
-import stanfordnlp
-from spacy_stanfordnlp import StanfordNLPLanguage
+
 
 
 def utils():
-    DOC_PATH = '../docs.pkl'
-    IDX_PATH = '../idxs.pkl'
+    DOC_PATH = 'docs.pkl'
+    IDX_PATH = 'idxs.pkl'
     n_classes = get_num_classes(DOC_PATH)
     w2idx, idx2l = get_idx(IDX_PATH)
     max_length = 265
@@ -13,21 +12,14 @@ def utils():
 
     return n_classes, w2idx, idx2l, max_length, input_dim
 
-def get_doc(sent):
-    snlp = stanfordnlp.Pipeline(lang="en", treebank='en_lines')
-    nlp = StanfordNLPLanguage(snlp)
-    doc = nlp(sent)
 
-    return doc
+def get_inputs_X_test_enc(doc, model):
 
-
-def get_inputs_X_test_enc(sent, model):
-
-    doc = get_doc(sent)
+    #doc = get_doc(sent)
     n_classes, w2idx, idx2l, max_length, input_dim = utils()
-    print("[INFO] Getting inputs and X_test enc")
+    #print("[INFO] Getting inputs and X_test enc")
     inputs, X_test_enc = inputoutput(doc, n_classes, w2idx, idx2l, max_length, input_dim)
-    print("[INFO] Done")
+    #print("[INFO] Done")
     return inputs, X_test_enc
 
 def get_words_pos_upos_tags(predTest, doc):
@@ -81,13 +73,13 @@ def extract_mwe(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd
             vis[idx] = False
     return mwe_list
 
-def analysis(preds, X_test_enc, sent):
+def analysis(preds, X_test_enc, doc):
 
-    print("[INFO] Getting predTest")
-    doc = get_doc(sent)
+    #print("[INFO] Getting predTest")
+    #doc = get_doc(sent)
     n_classes, w2idx, idx2l, max_length, input_dim = utils()
     predTest = _predTest(preds, X_test_enc, doc, idx2l)
-    print("[INFO} Done")
+    #print("[INFO} Done")
     words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd = get_words_pos_upos_tags(predTest[0], doc)
     mwe_list = extract_mwe(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd)
 

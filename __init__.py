@@ -7,27 +7,22 @@ from flask import Flask, render_template, request
 from bs4 import BeautifulSoup
 from collections import Counter
 import json
-from analysis_json import get_inputs_X_test_enc, analysis
+from analysis_json import get_inputs_X_test_enc, analysis, utils
 from Input_Output_task import get_num_classes, get_idx, model_ELMo_H_combined
 from keras import backend as K
 import tensorflow as tf
+import stanfordnlp
+from spacy_stanfordnlp import StanfordNLPLanguage
 
 app = Flask(__name__)
 #app.config.from_object(os.environ['APP_SETTINGS'])
 
-global model
-global graph
-global session
+def get_doc(sent):
+    snlp = stanfordnlp.Pipeline(lang="en", treebank='en_lines')
+    nlp = StanfordNLPLanguage(snlp)
+    doc = nlp(sent)
 
-def utils():
-    DOC_PATH = '../docs.pkl'
-    IDX_PATH = '../idxs.pkl'
-    n_classes = get_num_classes(DOC_PATH)
-    w2idx, idx2l = get_idx(IDX_PATH)
-    max_length = 265
-    input_dim = 1024
-
-    return n_classes, w2idx, idx2l, max_length, input_dim
+    return doc
 
 def load_model():
     
@@ -58,7 +53,7 @@ def index():
         try:
             sent = request.form['text']
             #r = requests.get(url)
-            print(sent)
+            #print(sent)
         except:
             errors.append("Unable to get text. Please make sure it's valid and try again.")
             return render_template('index.html', errors=errors)
@@ -67,10 +62,11 @@ def index():
             #model = load_model()
             #model, graph, session = models_stored_for_later[0], models_stored_for_later[1], models_stored_for_later[2]
             sent = sent.strip()
-            print(model.summary())
-            print("Starting Analysis")
+            doc = get_doc(sent)
+            #print(model.summary())
+            print("Getting predictions")
             #model._make_predict_function()
-            inputs, X_test_enc = get_inputs_X_test_enc(sent, model)
+            inputs, X_test_enc = get_inputs_X_test_enc(doc, model)
             #with tf.Session as sess:
             #    init = tf.global_variables_initializer()
             #    sess.run(init)
@@ -81,9 +77,9 @@ def index():
                 #with session.graph.as_default():
                     
 
-            results = analysis(preds, X_test_enc, sent)
-            print("Analysis Complete")
-            print(results)
+            results = analysis(preds, X_test_enc, doc)
+            print("Done")
+            #print(results)
             results = json.dumps({'sentences': results},
                                 sort_keys = False, indent = 4, separators = (',', ': '))
         

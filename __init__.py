@@ -94,4 +94,4 @@ if __name__ == '__main__':
     load_model()
     print("Model loaded")
     #app.debug = True
-    app.run(threaded=False)
+    app.run(threaded=False, host='0.0.0.0')

@@ -20,6 +20,7 @@ from BIO_to_dataset import read
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
 import tensorflow as tf
+from elmoformanylangs import Embedder
 
 config = ConfigProto()
 config.gpu_options.allow_growth = True
@@ -148,7 +149,7 @@ def model_ELMo_H_combined(max_length, input_dim, n_classes):
 
 		# Build the model
 		model = Model(inputs=[X_in] + A_in, outputs=output)
-		model.load_weights('results/EN_GCN_model_ELMo_H_combined_results_50/weights-improvement-50-1.00.hdf5')
+		model.load_weights('results/EN_GCN_model_ELMo_H_combined_results_50_12thOct/weights-improvement-50-1.00.hdf5')
 		model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['mae','acc'])
 		#print(model.summary())
 		return model
@@ -238,7 +239,17 @@ def inputoutput(doc, n_classes, w2idx, idx2l, max_length = 265, input_dim = 1024
     X_test_enc = [w2idx[w] for w in X_test[0]]
     X_test_enc = pad_sequences([X_test_enc], maxlen=max_length, padding='post')
 
-    test_weights = load_elmo(X_test, max_length)
+    e = Embedder('../../pytorch/144/')
+    for i in range(10):
+        weight = e.sents2elmo(X_test)
+    
+    lim, elmo_n = weight[0].shape
+    weight = weight[0].reshape(1,lim,1024)
+    test_weights = np.zeros((1, 265, 1024))
+    test_weights[:, :lim, :] = weight
+    
+    #test_weights = load_elmo(X_test, max_length)
+
     test_adjacency = load_adjacency([dep_test[0]], 1, max_length)
     test_adjacency_matrices = [test_adjacency]
     inputs = [test_weights]

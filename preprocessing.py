@@ -8,8 +8,22 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.layers import Embedding
 from gensim.models import KeyedVectors
 from keras.preprocessing.text import Tokenizer
+import tensorflow_hub as hub
+import tensorflow as tf
+import pickle
 
 from corpus_reader import *
+
+
+from keras.backend.tensorflow_backend import set_session
+import tensorflow as tf
+
+gpu_options = tf.GPUOptions(visible_device_list="1")
+config = tf.ConfigProto(gpu_options=gpu_options)
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+set_session(sess)
+
 
 class Data(object):
 	"""A preprocessor that prepares the data to be trained by the model 
@@ -30,6 +44,8 @@ class Data(object):
 		self.testORdev = testORdev
 		self.depAdjacency_gcn = depAdjacency_gcn
 		self.position_embed = position_embed
+		self.elmo_tfhub = hub.Module("https://tfhub.dev/google/elmo/2", trainable=True)
+		self.elmo_tfhub.get_input_info_dict
 
 	def encode(self, sents):
 		"""integer encode the sentences
@@ -72,6 +88,12 @@ class Data(object):
 		print("Reading the corpus .......")
 		c = Corpus_reader(path+self.lang+"/")
 		#train = pickle.load(open('../{}/{}.pkl'.format(self.lang, train), 'rb'))
+		with open('train_sent.pkl', 'wb') as f:
+			pickle.dump(c.train_sents, f)
+		
+		with open('test_sent.pkl', 'wb') as f:
+			pickle.dump(c.test_sents, f)
+		
 		train = c.read(c.train_sents)
 		X_train = [[x[0].replace('.',"$period$").replace("\\", "$backslash$").replace("/", "$backslash$") for x in elem] for elem in train]
 		y_train = [[x[5] for x in elem] for elem in train]
@@ -188,15 +210,23 @@ class Data(object):
 		self.pos_train_enc = np.array([[self.pos_one_hot[p] for p in poses] for poses in self.pos_train_enc])
 		self.pos_test_enc = np.array([[self.pos_one_hot[p] for p in poses] for poses in self.pos_test_enc])
 		print("train pos array shape",self.pos_train_enc.shape) # pos information is not necessarily used by the model
+		"""
+		with open('X_train.pkl', 'wb') as f:
+			pickle.dump(X_train, f)
+		
+		with open('X_test.pkl', 'wb') as f:
+			pickle.dump(X_test, f)
+		"""
+		print("Loading elmo")
 
-		if self.elmo_dir:
-			self.train_weights = self.load_elmo(X_train) #, pos_train)
-			
-			self.test_weights = self.load_elmo(X_test) #, pos_test)
+		#if self.elmo_dir:
+		self.train_weights = self.load_elmo(X_train, 'train') #, pos_train)
+		
+		self.test_weights = self.load_elmo(X_test, 'test') #, pos_test)
 
-			print("train weights shape: ", self.train_weights.shape)
-			print("train weights type: ", self.train_weights.dtype)
-			self.input_dim = len(self.train_weights[0][0])
+		print("train weights shape: ", self.train_weights.shape)
+		print("train weights type: ", self.train_weights.dtype)
+		self.input_dim = len(self.train_weights[0][0])
 
 		if self.word2vec_dir:
 			self.load_word2vec()
@@ -246,9 +276,52 @@ class Data(object):
 			                            trainable = False,
 			                            name='embed_layer')
 
-	def load_elmo(self, X):	# the aim is to create a numpy array of shape (sent_num, max_sent_size, 1024)
+	def load_elmo(self, X, dataset_type):	# the aim is to create a numpy array of shape (sent_num, max_sent_size, 1024)
 		if not self.elmo_dir:
-			pass # do nothing if there is no path to a pre-trained elmo avialable 
+			if dataset_type == 'train':
+				print("Loading train pickle")
+				with open('X_elmo_train.pkl', 'rb') as f:
+					X = pickle.load(f)
+			else:
+				print("Loading test pickle")
+				with open('X_elmo_test.pkl', 'rb') as f:
+					X = pickle.load(f)
+			
+			print("Evaluating elmo from tfhub")
+
+			lst = []
+			for i,j in enumerate(X):
+				print(i)
+				f,s,t = j.shape
+				for k,l in enumerate(j):
+					lst.append(l)
+			
+			print(len(lst))
+			#for i, sent_toks in enumerate(X):
+			#	print(i)
+				#sent = " ".join(sent_toks)
+				#print(sent)
+				#embeddings = self.elmo_tfhub([sent], signature="default", as_dict=True)["elmo"]
+				
+				#with tf.Session() as sess:
+				#	sess.run(tf.global_variables_initializer())
+				#	sess.run(tf.tables_initializer())
+				#	embeddings_tfhub =  sess.run(embeddings)
+
+				#sent, min_lim, elmo_size = embeddings_tfhub.shape
+				#test_weights_tfhub = np.zeros((1, self.max_length, 1024))
+				#test_weights_tfhub[:, :min_lim, :] = embeddings_tfhub
+			#	test_weights_tfhub = X[i]
+			#	print(test_weights_tfhub.shape)
+			#	lst.append(test_weights_tfhub)
+			
+			#pkl_file = dataset_type + '_tfhubelmo.pkl'
+			#with open(pkl_file, 'wb') as f:
+			#	pickle.dump(lst, f)
+			#print('ELMO Loaded ...')
+
+			return np.array(lst, dtype = np.float32)
+			#pass # do nothing if there is no path to a pre-trained elmo avialable 
 		else:
 			filename = self.elmo_dir + '/ELMO_EN.hdf5'#.format(self.lang)
 			elmo_dict = h5py.File(filename, 'r')

@@ -1,4 +1,4 @@
-from Input_Output_task import inputoutput, get_num_classes, get_idx, _predTest
+from Input_Output_task import inputoutput, get_num_classes, get_idx, _predTest, get_words_tags, extract_mwe
 
 
 
@@ -7,7 +7,7 @@ def utils():
     IDX_PATH = 'idxs.pkl'
     n_classes = get_num_classes(DOC_PATH)
     w2idx, idx2l = get_idx(IDX_PATH)
-    max_length = 265
+    max_length = 503
     input_dim = 1024
 
     return n_classes, w2idx, idx2l, max_length, input_dim
@@ -44,7 +44,7 @@ def get_words_pos_upos_tags(predTest, doc):
     return words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd
 
 
-def extract_mwe(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd):
+def extract_mwe_json(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd):
     vis = [True]*len(words)
     mwe_list = []
     for idx,val in enumerate(tags):
@@ -79,9 +79,13 @@ def analysis(preds, X_test_enc, doc):
     #doc = get_doc(sent)
     n_classes, w2idx, idx2l, max_length, input_dim = utils()
     predTest = _predTest(preds, X_test_enc, doc, idx2l)
+
+    words, tags = get_words_tags(predTest[0])
+    mwe_list = extract_mwe(words, tags)
+
     #print("[INFO} Done")
     words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd = get_words_pos_upos_tags(predTest[0], doc)
-    mwe_list = extract_mwe(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd)
+    mwe_list_json = extract_mwe_json(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd)
 
     
     annotated_sentences = []
@@ -119,7 +123,7 @@ def analysis(preds, X_test_enc, doc):
         #characterOffsetBegin = characterOffsetEnd + 1   
         #characterOffsetEnd = characterOffsetBegin
         
-    annotated_sentences.append({'index': 0,'sentence':str(doc), 'basicDependencies': deps, 'tokens': tokens, 'mwe': mwe_list})
+    annotated_sentences.append({'index': 0,'sentence':str(doc), 'basicDependencies': deps, 'tokens': tokens, 'mwe': mwe_list_json})
 
-    return annotated_sentences
+    return annotated_sentences, mwe_list
 

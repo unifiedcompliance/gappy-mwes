@@ -18,7 +18,8 @@ DATAPATH = "./data/"			# for each language, place train, dev, and test files in 
 initial_weight=''			# training can be resumed from a checkpoint if a saved file of weights is assigned to this variable 
 POSITION_EMBED = False			# position embedding wasn't used (as explained in Sec 2.2 of the paper)  
 WV_DIR = "" 				# the directory for word2vec embeddings (if applicable, pass an empty string) 
-ELMO_PATH = "./embeddings"	    	# Place your embedding files in this directory (with the format ELMO_{EN|FR|FA|DE})
+#ELMO_PATH = "./embeddings"	    	# Place your embedding files in this directory (with the format ELMO_{EN|FR|FA|DE})
+ELMO_PATH = None
 
 def run_model():
 	d = Data(LANG, DEVorTEST, WV_DIR, ELMO_PATH, MODEL, DEP_ADJACENCY_GCN, POSITION_EMBED)

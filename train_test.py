@@ -11,6 +11,8 @@ from models.tag_models import Tagger
 from keras.backend.tensorflow_backend import set_session
 import tensorflow as tf
 
+from corpus_reader import *
+
 gpu_options = tf.GPUOptions(visible_device_list="0")
 config = tf.ConfigProto(gpu_options=gpu_options)
 config.gpu_options.allow_growth = True
@@ -97,8 +99,8 @@ class Train_Test():
 			print('adjacency matrices')
 			inputs += self.data.test_adjacency_matrices
 		
-		with open('inputs.pkl', 'wb') as f:
-			pickle.dump(inputs, f)
+		#with open('inputs.pkl', 'wb') as f:
+		#	pickle.dump(inputs, f)
 
 		if len(inputs)==1:
 			print("Input length:1 ")
@@ -107,8 +109,8 @@ class Train_Test():
 			print("Not 1")
 			preds = self.tagger.predict(inputs, batch_size=16, verbose=1)
 		
-		with open('preds.pkl', 'wb') as f:
-			pickle.dump(preds, f)
+		#with open('preds.pkl', 'wb') as f:
+		#	pickle.dump(preds, f)
 
 		final_preds = []
 		for i in range(len(self.data.X_test_enc)):
@@ -122,8 +124,9 @@ class Train_Test():
 		    pickle.dump(final_preds, f)
 		with open(prediction_file_name+'.pkl', 'rb') as f:
 		    labels1 = pickle.load(f)
-		if self.data.testORdev == "TEST":	# we have DEV as part of training and are evaluating the test
-			labels2MWE(labels1, data_path+'{}/test.txt'.format(self.data.lang), prediction_file_name+'_system.txt') 
+		c = Corpus_reader(data_path+self.data.lang+"/")
+		if self.data.testORdev == "TEST":
+			labels2MWE(labels1, c.test_sents, prediction_file_name+'_system.txt') 
 			
 			precision, recall, f1_score = metrics_f1_score(data_path+"{}/test.txt".format(self.data.lang), prediction_file_name+'_system.txt')
 			print("Precision: {}, Recall: {}, F1 score: {}".format(precision, recall, f1_score))
@@ -131,7 +134,7 @@ class Train_Test():
 			#with open(self.res_dir + '/eval'.format(self.data.lang)+self.tagger_name+'.txt', 'w') as f:
 			#	f.write(subprocess.check_output([data_path+"bin/evaluate_v1.py", "--train", data_path+"{}/train.cupt".format(self.data.lang), "--gold", data_path+"{}/test.cupt".format(self.data.lang), "--pred", prediction_file_name+"_system.cupt" ]).decode())
 		else:
-			labels2MWE(labels1, data_path+'{}/dev.txt'.format(self.data.lang), prediction_file_name+'_system.txt')
+			labels2MWE(labels1, c.dev_sents, prediction_file_name+'_system.txt')
 
 			precision, recall, f1_score = metrics_f1_score(data_path+"{}/dev.txt".format(self.data.lang), prediction_file_name+'_system.txt')
 			print("Precision: {}, Recall: {}, F1 score: {}".format(precision, recall, f1_score))

@@ -77,12 +77,13 @@ def index():
                 #with session.graph.as_default():
                     
 
-            results = analysis(preds, X_test_enc, doc)
+            annotated_sentences, mwe_list = analysis(preds, X_test_enc, doc)
             print("Done")
             #print(results)
-            results = json.dumps({'sentences': results},
+            sentences = json.dumps({'sentences': annotated_sentences},
                                 sort_keys = False, indent = 4, separators = (',', ': '))
-        
+            results = [mwe_list, sentences]
+
     return render_template('index.html', errors=errors, results=results)
     
 

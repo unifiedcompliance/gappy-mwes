@@ -30,12 +30,25 @@
           </div>
         </div>
         <div class="row">
+          <div class="col-lg-" >
+              {% if results[0] %}
+                <h2>Multiword Expressions</h2>
+                <br>
+                <div id="results">
+                  {% for mwe in results[0] %}
+                    <pre style="color:rgb(26, 37, 37); font-weight:bold; max-width: 250px; background-color:rgb(199, 212, 16);" > {{ mwe }}</pre>
+                  {% endfor %}
+                </div>
+              {% endif %}
+          </div>
+        </div>
+        <div class="row">
             <div class="col-lg-">
-                {% if results %}
+                {% if results[1] %}
                   <h2>Results</h2>
                   <br>
                   <div id="results">
-                      <pre> {{ results }}</pre>
+                      <pre> {{ results[1] }}</pre>
                   </div>
                 {% endif %}
             </div>

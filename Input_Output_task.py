@@ -20,15 +20,19 @@ from BIO_to_dataset import read
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
 import tensorflow as tf
+import tensorflow_hub as hub
 from elmoformanylangs import Embedder
 
-config = ConfigProto()
+gpu_options = tf.GPUOptions(visible_device_list="0")
+config = tf.ConfigProto(gpu_options=gpu_options)
 config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
+sess = tf.Session(config=config)
 
-tf.global_variables_initializer().run()
-tf.tables_initializer().run()
+elmo = hub.Module("https://tfhub.dev/google/elmo/2", trainable=True)
+#tf.global_variables_initializer().run()
+#tf.tables_initializer().run()
 
+elmo.get_input_info_dict
 
 
 def get_sents(doc):
@@ -149,7 +153,7 @@ def model_ELMo_H_combined(max_length, input_dim, n_classes):
 
 		# Build the model
 		model = Model(inputs=[X_in] + A_in, outputs=output)
-		model.load_weights('results/EN_GCN_model_ELMo_H_combined_results_50_12thOct/weights-improvement-50-1.00.hdf5')
+		model.load_weights('results/EN_GCN_model_ELMo_H_combined_results_50/weights-improvement-50-1.00.hdf5')
 		model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['mae','acc'])
 		#print(model.summary())
 		return model
@@ -202,11 +206,19 @@ def extract_mwe(words, tags):
                     #print(words[j], tags[j])
                 else:
                     break
-            mwe_list.append(mwe)
+            if len(mwe.split(" ")) > 1:
+                mwe_list.append(mwe)
     return mwe_list
 
+def elmo_vectors(x):
+    embeddings = elmo(x, signature="default", as_dict=True)["elmo"]
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        sess.run(tf.tables_initializer())
+        # return average of ELMo features
+        return sess.run(embeddings)
 
-def inputoutput(doc, n_classes, w2idx, idx2l, max_length = 265, input_dim = 1024):
+def inputoutput(doc, n_classes, w2idx, idx2l, max_length = 503, input_dim = 1024):
 
     #input_str = "{risk factor} Determine whether the institution has appropriate standards and processes for risk-based auditing and internal risk assessments that : Describe the process for assessing and documenting risk and control factors and its application in the formulation of audit plans , resource allocations , audit scopes , and audit cycle frequency"
     #snlp = stanfordnlp.Pipeline(lang="en", treebank='en_lines')
@@ -238,14 +250,18 @@ def inputoutput(doc, n_classes, w2idx, idx2l, max_length = 265, input_dim = 1024
 
     X_test_enc = [w2idx[w] for w in X_test[0]]
     X_test_enc = pad_sequences([X_test_enc], maxlen=max_length, padding='post')
-
-    e = Embedder('../../pytorch/144/')
-    for i in range(10):
-        weight = e.sents2elmo(X_test)
     
+    #e = Embedder('../../pytorch/144/')
+    #for i in range(10):
+    #    weight = e.sents2elmo(X_test)
+    
+    for sent_toks in X_test:
+        sent = " ".join(sent_toks)
+
+    weight = elmo_vectors([sent])
     lim, elmo_n = weight[0].shape
     weight = weight[0].reshape(1,lim,1024)
-    test_weights = np.zeros((1, 265, 1024))
+    test_weights = np.zeros((1, 503, 1024))
     test_weights[:, :lim, :] = weight
     
     #test_weights = load_elmo(X_test, max_length)
@@ -292,7 +308,7 @@ if __name__ == "__main__":
     IDX_PATH = 'idxs.pkl'
     n_classes = get_num_classes(DOC_PATH)
     w2idx, idx2l = get_idx(IDX_PATH) 
-    max_length = 265
+    max_length = 503
     input_dim = 1024
     
     model = model_ELMo_H_combined(max_length, input_dim, n_classes)

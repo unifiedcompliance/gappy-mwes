@@ -28,11 +28,11 @@ config = tf.ConfigProto(gpu_options=gpu_options)
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
-elmo = hub.Module("https://tfhub.dev/google/elmo/2", trainable=True)
-#tf.global_variables_initializer().run()
-#tf.tables_initializer().run()
+#elmo = hub.Module("https://tfhub.dev/google/elmo/2", trainable=True)
+#sess.global_variables_initializer().run()
+#sess.tables_initializer().run()
 
-elmo.get_input_info_dict
+#elmo.get_input_info_dict
 
 
 def get_sents(doc):
@@ -210,24 +210,77 @@ def extract_mwe(words, tags):
                 mwe_list.append(mwe)
     return mwe_list
 
-def elmo_vectors(x):
-    embeddings = elmo(x, signature="default", as_dict=True)["elmo"]
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        sess.run(tf.tables_initializer())
-        # return average of ELMo features
-        return sess.run(embeddings)
+def embed_elmo2(module):
+    with tf.Graph().as_default():
+        sentences = tf.placeholder(tf.string)
+        print("POI2 - B - F - A")
+        start_time = time.time() 
+        embed = hub.Module(module)
+        print("--- %s seconds ---" % (time.time() - start_time))
+        print("POI2 - B - F - B")
+        start_time = time.time()
+        embeddings = embed(sentences, signature="default", as_dict=True)["elmo"]
+        print("--- %s seconds ---" % (time.time() - start_time))
+        session = tf.train.MonitoredSession()
 
-def inputoutput(doc, n_classes, w2idx, idx2l, max_length = 503, input_dim = 1024):
+    return lambda x: session.run(embeddings, {sentences: x})
+
+def elmo_vectors(x):
+    print("POI2 - B - F - A")
+    start_time = time.time() 
+    embeddings = elmo(x, signature="default", as_dict=True)["elmo"]
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+    print("POI2 - B - F - B")
+    start_time = time.time()
+    #x = sess.run(embeddings)
+    #print("--- %s seconds ---" % (time.time() - start_time))
+    #return x
+    
+    with tf.Session() as sess:
+        print("--- %s seconds ---" % (time.time() - start_time))
+        start_time = time.time()
+        sess.run([tf.global_variables_initializer(), tf.tables_initializer()])
+        print("--- %s seconds ---" % (time.time() - start_time))
+        #start_time = time.time()
+        #sess.run(tf.tables_initializer())
+        #print("--- %s seconds ---" % (time.time() - start_time))
+        # return average of ELMo features
+        start_time = time.time()
+        x = sess.run(embeddings)
+        print("--- %s seconds ---" % (time.time() - start_time))
+        return x
+
+def get_tests(doc):
+    sents = get_sents(doc)
+    test = read_sents(sents)
+    X_test = [[x[0].replace('.',"$period$").replace("\\", "$backslash$").replace("/", "$backslash$") for x in elem] for elem in test]
+    dep_test = [[x[3] for x in elem] for elem in test]
+
+    return X_test, dep_test
+
+def inputoutput(X_test, dep_test, n_classes, w2idx, idx2l, weight, max_length = 503, input_dim = 1024):
 
     #input_str = "{risk factor} Determine whether the institution has appropriate standards and processes for risk-based auditing and internal risk assessments that : Describe the process for assessing and documenting risk and control factors and its application in the formulation of audit plans , resource allocations , audit scopes , and audit cycle frequency"
     #snlp = stanfordnlp.Pipeline(lang="en", treebank='en_lines')
     #nlp = StanfordNLPLanguage(snlp)
     #doc = nlp(sentence)
-    sents = get_sents(doc)
-    test = read_sents(sents)
-    X_test = [[x[0].replace('.',"$period$").replace("\\", "$backslash$").replace("/", "$backslash$") for x in elem] for elem in test]
-    dep_test = [[x[3] for x in elem] for elem in test]
+    #print("POI2 - B - A")
+    #start_time = time.time()
+    #sents = get_sents(doc)
+    #print("--- %s seconds ---" % (time.time() - start_time))
+    #print("POI2 - B - B")
+    #start_time = time.time()
+    #test = read_sents(sents)
+    #print("--- %s seconds ---" % (time.time() - start_time))
+    #print("POI2 - B - C")
+    #start_time = time.time()
+    #X_test = [[x[0].replace('.',"$period$").replace("\\", "$backslash$").replace("/", "$backslash$") for x in elem] for elem in test]
+    #print("--- %s seconds ---" % (time.time() - start_time))
+    #print("POI2 - B - D")
+    #start_time = time.time()
+    #dep_test = [[x[3] for x in elem] for elem in test]
+    #print("--- %s seconds ---" % (time.time() - start_time))
     #max_length = 265
 
     #with open('../docs.pkl', 'rb') as f:
@@ -248,9 +301,11 @@ def inputoutput(doc, n_classes, w2idx, idx2l, max_length = 503, input_dim = 1024
     #idx2l = idxs['idx2l']
     #idx2pos = idxs['idx2pos']
 
+    print("POI2 - B - E")
+    start_time = time.time()
     X_test_enc = [w2idx[w] for w in X_test[0]]
     X_test_enc = pad_sequences([X_test_enc], maxlen=max_length, padding='post')
-    
+    print("--- %s seconds ---" % (time.time() - start_time))
     #e = Embedder('../../pytorch/144/')
     #for i in range(10):
     #    weight = e.sents2elmo(X_test)
@@ -258,18 +313,30 @@ def inputoutput(doc, n_classes, w2idx, idx2l, max_length = 503, input_dim = 1024
     for sent_toks in X_test:
         sent = " ".join(sent_toks)
 
-    weight = elmo_vectors([sent])
+    print("POI2 - B - F")
+    start_time = time.time()    
+    #weight = elmo_vectors([sent])
+    #embed_fn = embed_elmo2('module/module_elmo2')
+    #weight = embed_fn([sent])
+    print(weight.shape)
+    print(weight[0].shape)
     lim, elmo_n = weight[0].shape
+    print(lim, elmo_n)
     weight = weight[0].reshape(1,lim,1024)
+    print(weight.shape)
     test_weights = np.zeros((1, 503, 1024))
     test_weights[:, :lim, :] = weight
-    
+    print(test_weights.shape)
+    print("--- %s seconds ---" % (time.time() - start_time))
     #test_weights = load_elmo(X_test, max_length)
 
+    print("POI2 - B - G")
+    start_time = time.time()   
     test_adjacency = load_adjacency([dep_test[0]], 1, max_length)
     test_adjacency_matrices = [test_adjacency]
     inputs = [test_weights]
     inputs += test_adjacency_matrices
+    print("--- %s seconds ---" % (time.time() - start_time))
     #input_dim = len(test_weights[0][0])
     #model = model_ELMo_H_combined(max_length, input_dim, n_classes)
     return inputs, X_test_enc

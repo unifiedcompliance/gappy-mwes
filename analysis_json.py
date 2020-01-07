@@ -1,5 +1,5 @@
 from Input_Output_task import inputoutput, get_num_classes, get_idx, _predTest, get_words_tags, extract_mwe
-
+import time
 
 
 def utils():
@@ -13,12 +13,18 @@ def utils():
     return n_classes, w2idx, idx2l, max_length, input_dim
 
 
-def get_inputs_X_test_enc(doc, model):
+def get_inputs_X_test_enc(X_test, dep_test, weight, model):
 
     #doc = get_doc(sent)
+    print("POI2 - A")
+    start_time = time.time()
     n_classes, w2idx, idx2l, max_length, input_dim = utils()
+    print("--- %s seconds ---" % (time.time() - start_time))
     #print("[INFO] Getting inputs and X_test enc")
-    inputs, X_test_enc = inputoutput(doc, n_classes, w2idx, idx2l, max_length, input_dim)
+    print("POI2 - B")
+    start_time = time.time()
+    inputs, X_test_enc = inputoutput(X_test, dep_test, n_classes, w2idx, idx2l, weight, max_length, input_dim)
+    print("--- %s seconds ---" % (time.time() - start_time))
     #print("[INFO] Done")
     return inputs, X_test_enc
 

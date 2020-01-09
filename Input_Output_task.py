@@ -143,13 +143,15 @@ def model_ELMo_H_combined(max_length, input_dim, n_classes):
 
 		conc = concatenate([gcn, self_att])
 		gate = BatchNormalization()(Highway(n_layers = n_layers, value=conc, gate_bias=-2)) 
-		if max_length < 300:
-			lstm = Bidirectional(LSTM(hidden,return_sequences=True, name='lstm', dropout=0.5, recurrent_dropout=0.2))(gate)
-		else:
-			print('CuDNNLSTM')
-			lstm = Bidirectional(CuDNNLSTM(hidden,return_sequences=True, name='lstm'))(gate)
-			lstm = Dropout(0.5)(lstm)
-
+		lstm = Bidirectional(LSTM(hidden,return_sequences=True, name='lstm', dropout=0.5, recurrent_dropout=0.2))(gate)
+        
+        #if max_length < 300:
+		#	lstm = Bidirectional(LSTM(hidden,return_sequences=True, name='lstm', dropout=0.5, recurrent_dropout=0.2))(gate)
+		#else:
+		#	print('CuDNNLSTM')
+		#	lstm = Bidirectional(CuDNNLSTM(hidden,return_sequences=True, name='lstm'))(gate)
+		#	lstm = Dropout(0.5)(lstm)
+        
 		output = Dense(n_classes, activation='softmax', name='dense')(lstm)
 
 		# Build the model

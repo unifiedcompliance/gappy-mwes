@@ -24,7 +24,7 @@ def embed_elmo2():
         sentences = tf.placeholder(tf.string)
         print("POI2 - B - F - A")
         start_time = time.time() 
-        embed = hub.Module('module/module_elmo2')
+        embed = hub.Module('module/module_elmo3')
         print("--- %s seconds ---" % (time.time() - start_time))
         print("POI2 - B - F - B")
         start_time = time.time()

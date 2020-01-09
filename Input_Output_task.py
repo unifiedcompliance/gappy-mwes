@@ -25,9 +25,9 @@ import time
 import copy
 
 #gpu_options = tf.GPUOptions(visible_device_list="0")
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-sess = tf.Session(config=config)
+#config = tf.ConfigProto()
+#config.gpu_options.allow_growth = True
+#sess = tf.Session(config=config)
 
 #elmo = hub.Module("https://tfhub.dev/google/elmo/2", trainable=True)
 #sess.global_variables_initializer().run()

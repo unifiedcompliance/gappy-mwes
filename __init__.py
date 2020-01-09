@@ -16,6 +16,14 @@ import tensorflow_hub as hub
 import stanfordnlp
 from spacy_stanfordnlp import StanfordNLPLanguage
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
+if tf.test.gpu_device_name():
+    print('GPU found')
+else:
+    print("No GPU found")
+
+
 app = Flask(__name__)
 #app.config.from_object(os.environ['APP_SETTINGS'])
 

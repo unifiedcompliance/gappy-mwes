@@ -21,10 +21,11 @@ from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
 import tensorflow as tf
 import tensorflow_hub as hub
-from elmoformanylangs import Embedder
+import time
+import copy
 
-gpu_options = tf.GPUOptions(visible_device_list="0")
-config = tf.ConfigProto(gpu_options=gpu_options)
+#gpu_options = tf.GPUOptions(visible_device_list="0")
+config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 

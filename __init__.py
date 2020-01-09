@@ -38,7 +38,7 @@ embed_fn = embed_elmo2()
 
 def get_nlp():
     start_time = time.time()
-    snlp = stanfordnlp.Pipeline(lang="en", treebank='en_lines')
+    snlp = stanfordnlp.Pipeline(lang="en", treebank='en_lines', use_gpu=False)
     print("--- %s seconds ---" % (time.time() - start_time))
     global nlp
     start_time = time.time()

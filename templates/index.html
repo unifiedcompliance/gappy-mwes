@@ -35,8 +35,10 @@
                 <h2>Multiword Expressions</h2>
                 <br>
                 <div id="results">
-                  {% for mwe in results[0] %}
-                    <pre style="color:rgb(26, 37, 37); font-weight:bold; max-width: 250px; background-color:rgb(199, 212, 16);" > {{ mwe }}</pre>
+                  {% for i in results[0] %}
+                    {% for mwe in i %}
+                      <pre style="color:rgb(26, 37, 37); font-weight:bold; max-width: 250px; background-color:rgb(199, 212, 16);" > {{ mwe }}</pre>
+                    {% endfor %}
                   {% endfor %}
                 </div>
               {% endif %}
@@ -53,6 +55,7 @@
                 {% endif %}
             </div>
         </div>
+      </div>
     </div>
     <br><br>
     <script src="//code.jquery.com/jquery-2.2.1.min.js"></script>

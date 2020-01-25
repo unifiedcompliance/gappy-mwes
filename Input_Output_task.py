@@ -262,7 +262,7 @@ def get_tests(doc):
 
     return X_test, dep_test
 
-def inputoutput(X_test, dep_test, n_classes, w2idx, idx2l, weight, max_length = 503, input_dim = 1024):
+def inputoutput(X_test, dep_test, n_classes, w2idx, idx2l, weight, max_length = 511, input_dim = 1024):
 
     #input_str = "{risk factor} Determine whether the institution has appropriate standards and processes for risk-based auditing and internal risk assessments that : Describe the process for assessing and documenting risk and control factors and its application in the formulation of audit plans , resource allocations , audit scopes , and audit cycle frequency"
     #snlp = stanfordnlp.Pipeline(lang="en", treebank='en_lines')
@@ -306,8 +306,11 @@ def inputoutput(X_test, dep_test, n_classes, w2idx, idx2l, weight, max_length = 
 
     print("POI2 - B - E")
     start_time = time.time()
-    X_test_enc = [w2idx[w] for w in X_test[0]]
-    X_test_enc = pad_sequences([X_test_enc], maxlen=max_length, padding='post')
+    try:
+        X_test_enc = [w2idx[w] for w in X_test[0]]
+        X_test_enc = pad_sequences([X_test_enc], maxlen=max_length, padding='post')
+    except Exception as e:
+        X_test_enc = []
     print("--- %s seconds ---" % (time.time() - start_time))
     #e = Embedder('../../pytorch/144/')
     #for i in range(10):
@@ -327,7 +330,7 @@ def inputoutput(X_test, dep_test, n_classes, w2idx, idx2l, weight, max_length = 
     print(lim, elmo_n)
     weight = weight[0].reshape(1,lim,1024)
     print(weight.shape)
-    test_weights = np.zeros((1, 503, 1024))
+    test_weights = np.zeros((1, 511, 1024))
     test_weights[:, :lim, :] = weight
     print(test_weights.shape)
     print("--- %s seconds ---" % (time.time() - start_time))

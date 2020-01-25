@@ -3,11 +3,11 @@ import time
 
 
 def utils():
-    DOC_PATH = 'docs.pkl'
-    IDX_PATH = 'idxs.pkl'
+    DOC_PATH = 'docs_new.pkl'
+    IDX_PATH = 'idxs_new.pkl'
     n_classes = get_num_classes(DOC_PATH)
     w2idx, idx2l = get_idx(IDX_PATH)
-    max_length = 503
+    max_length = 511
     input_dim = 1024
 
     return n_classes, w2idx, idx2l, max_length, input_dim
@@ -79,20 +79,29 @@ def extract_mwe_json(words, pos, upos, tags, characterOffsetBegin, characterOffs
             vis[idx] = False
     return mwe_list
 
-def analysis(preds, X_test_enc, doc):
+def analysis(sent_idx, preds, X_test_enc, doc, orig_sent):
 
     #print("[INFO] Getting predTest")
     #doc = get_doc(sent)
     n_classes, w2idx, idx2l, max_length, input_dim = utils()
-    predTest = _predTest(preds, X_test_enc, doc, idx2l)
+    
+    #print(preds.shape)
+    #print(X_test_enc.shape)
+    if len(preds) > 0:
+        print("Token found in dictionary")
+        print(len(X_test_enc))
+        predTest = _predTest(preds, X_test_enc, doc, idx2l)
 
-    words, tags = get_words_tags(predTest[0])
-    mwe_list = extract_mwe(words, tags)
+        words, tags = get_words_tags(predTest[0])
+        mwe_list = extract_mwe(words, tags)
 
-    #print("[INFO} Done")
-    words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd = get_words_pos_upos_tags(predTest[0], doc)
-    mwe_list_json = extract_mwe_json(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd)
-
+        #print("[INFO} Done")
+        words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd = get_words_pos_upos_tags(predTest[0], doc)
+        mwe_list_json = extract_mwe_json(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd)  
+    else:
+        mwe_list = []
+        mwe_list_json = []
+        
     
     annotated_sentences = []
     tokens = []
@@ -108,7 +117,10 @@ def analysis(preds, X_test_enc, doc):
         pos = token.pos_
         upos = token.tag_
         #feats = nlp.vocab.morphology.tag_map[upos]
-        mwe_tag = predTest[0][index-1][7]
+        if len(preds) > 0:
+            mwe_tag = predTest[0][index-1][7]
+        else:
+            mwe_tag = ""
         dep = token.dep_
         governor = token.head.i + 1
         governorGloss = str(token.head)
@@ -129,7 +141,7 @@ def analysis(preds, X_test_enc, doc):
         #characterOffsetBegin = characterOffsetEnd + 1   
         #characterOffsetEnd = characterOffsetBegin
         
-    annotated_sentences.append({'index': 0,'sentence':str(doc), 'basicDependencies': deps, 'tokens': tokens, 'mwe': mwe_list_json})
+    annotated_sentences.append({'index': sent_idx,'sentence':orig_sent[sent_idx], 'basicDependencies': deps, 'tokens': tokens, 'mwe': mwe_list_json})
 
     return annotated_sentences, mwe_list
 

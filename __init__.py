@@ -18,7 +18,7 @@ from spacy_stanfordnlp import StanfordNLPLanguage
 from stanfordnlp.server import CoreNLPClient
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-os.environ['CORENLP_HOME'] = "/home/sritanu/stanford-corenlp-full-2018-10-05/"
+os.environ['CORENLP_HOME'] = "stanford-corenlp-full-2018-10-05/"
 
 if tf.test.gpu_device_name():
     print('GPU found')

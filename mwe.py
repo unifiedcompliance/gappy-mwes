@@ -4,7 +4,7 @@ class Mwe:
     def __init__(self, path):
         
         trainFile = os.path.join(path, 'train.txt')
-        devFile = os.path.join(path, 'dev.txt')
+        #devFile = os.path.join(path, 'dev.txt')
         testFile = os.path.join(path, 'test.txt')
         
 
@@ -14,8 +14,8 @@ class Mwe:
         with open(testFile) as f:
             self.test_collection = f.readlines()
         
-        with open(devFile) as f:
-            self.dev_collection = f.readlines()
+        #with open(devFile) as f:
+        #    self.dev_collection = f.readlines()
 
 
     def sent_extractor(self, collection):

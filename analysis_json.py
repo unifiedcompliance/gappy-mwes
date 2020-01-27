@@ -13,7 +13,7 @@ def utils():
     return n_classes, w2idx, idx2l, max_length, input_dim
 
 
-def get_inputs_X_test_enc(X_test, dep_test, weight, model):
+def get_inputs(dep_test, weight, model):
 
     #doc = get_doc(sent)
     print("POI2 - A")
@@ -23,10 +23,10 @@ def get_inputs_X_test_enc(X_test, dep_test, weight, model):
     #print("[INFO] Getting inputs and X_test enc")
     print("POI2 - B")
     start_time = time.time()
-    inputs, X_test_enc = inputoutput(X_test, dep_test, n_classes, w2idx, idx2l, weight, max_length, input_dim)
+    inputs = inputoutput(dep_test, idx2l, weight, max_length, input_dim)
     print("--- %s seconds ---" % (time.time() - start_time))
     #print("[INFO] Done")
-    return inputs, X_test_enc
+    return inputs
 
 def get_words_pos_upos_tags(predTest, doc):
     words = []
@@ -79,28 +79,24 @@ def extract_mwe_json(words, pos, upos, tags, characterOffsetBegin, characterOffs
             vis[idx] = False
     return mwe_list
 
-def analysis(sent_idx, preds, X_test_enc, doc, orig_sent):
+def analysis(sent_idx, preds, doc, orig_sent):
 
     #print("[INFO] Getting predTest")
     #doc = get_doc(sent)
     n_classes, w2idx, idx2l, max_length, input_dim = utils()
     
+
     #print(preds.shape)
     #print(X_test_enc.shape)
-    if len(preds) > 0:
-        print("Token found in dictionary")
-        print(len(X_test_enc))
-        predTest = _predTest(preds, X_test_enc, doc, idx2l)
+    
+    predTest = _predTest(preds, doc, idx2l)
 
-        words, tags = get_words_tags(predTest[0])
-        mwe_list = extract_mwe(words, tags)
+    words, tags = get_words_tags(predTest[0])
+    mwe_list = extract_mwe(words, tags)
 
-        #print("[INFO} Done")
-        words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd = get_words_pos_upos_tags(predTest[0], doc)
-        mwe_list_json = extract_mwe_json(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd)  
-    else:
-        mwe_list = []
-        mwe_list_json = []
+    #print("[INFO} Done")
+    words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd = get_words_pos_upos_tags(predTest[0], doc)
+    mwe_list_json = extract_mwe_json(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd)  
         
     
     annotated_sentences = []

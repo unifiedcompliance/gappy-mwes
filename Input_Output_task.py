@@ -162,12 +162,11 @@ def model_ELMo_H_combined(max_length, input_dim, n_classes):
 		return model
 
 
-def get_final_preds(X_test_enc, preds, idx2l):
+def get_final_preds(preds, idx2l):
     final_preds = []
-    for i in range(len([X_test_enc])):
-        pred = np.argmax(preds[i],-1)
-        pred = [idx2l[p] for p in pred]
-        final_preds.append(pred)
+    pred = np.argmax(preds[0],-1)
+    pred = [idx2l[p] for p in pred]
+    final_preds.append(pred)
     
     return final_preds
 
@@ -262,8 +261,9 @@ def get_tests(doc):
 
     return X_test, dep_test
 
-def inputoutput(X_test, dep_test, n_classes, w2idx, idx2l, weight, max_length = 511, input_dim = 1024):
+def inputoutput(dep_test, idx2l, weight, max_length = 511, input_dim = 1024):
 
+    """
     #input_str = "{risk factor} Determine whether the institution has appropriate standards and processes for risk-based auditing and internal risk assessments that : Describe the process for assessing and documenting risk and control factors and its application in the formulation of audit plans , resource allocations , audit scopes , and audit cycle frequency"
     #snlp = stanfordnlp.Pipeline(lang="en", treebank='en_lines')
     #nlp = StanfordNLPLanguage(snlp)
@@ -320,17 +320,19 @@ def inputoutput(X_test, dep_test, n_classes, w2idx, idx2l, weight, max_length = 
         sent = " ".join(sent_toks)
 
     print("POI2 - B - F")
-    start_time = time.time()    
+        
     #weight = elmo_vectors([sent])
     #embed_fn = embed_elmo2('module/module_elmo2')
     #weight = embed_fn([sent])
+    """
+    start_time = time.time()
     print(weight.shape)
     print(weight[0].shape)
     lim, elmo_n = weight[0].shape
     print(lim, elmo_n)
-    weight = weight[0].reshape(1,lim,1024)
+    weight = weight[0].reshape(1, lim, input_dim)
     print(weight.shape)
-    test_weights = np.zeros((1, 511, 1024))
+    test_weights = np.zeros((1, max_length, input_dim))
     test_weights[:, :lim, :] = weight
     print(test_weights.shape)
     print("--- %s seconds ---" % (time.time() - start_time))
@@ -345,10 +347,10 @@ def inputoutput(X_test, dep_test, n_classes, w2idx, idx2l, weight, max_length = 
     print("--- %s seconds ---" % (time.time() - start_time))
     #input_dim = len(test_weights[0][0])
     #model = model_ELMo_H_combined(max_length, input_dim, n_classes)
-    return inputs, X_test_enc
+    return inputs
 
-def _predTest(preds, X_test_enc, doc, idx2l):
-    final_preds = get_final_preds(X_test_enc, preds, idx2l)
+def _predTest(preds, doc, idx2l):
+    final_preds = get_final_preds(preds, idx2l)
     sents = get_sents(doc)
     predTest = labels2MWE(final_preds, [sents])
 

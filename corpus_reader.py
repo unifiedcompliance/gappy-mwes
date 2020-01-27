@@ -14,7 +14,7 @@ class Corpus_reader:
 
 		mweCorpus = Mwe(path)
 		self.train_sents = mweCorpus.sent_extractor(mweCorpus.train_collection)
-		self.dev_sents = mweCorpus.sent_extractor(mweCorpus.dev_collection)
+		#self.dev_sents = mweCorpus.sent_extractor(mweCorpus.dev_collection)
 		self.test_sents = mweCorpus.sent_extractor(mweCorpus.test_collection)
 	
 

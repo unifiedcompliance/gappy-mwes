@@ -8,7 +8,7 @@ from flask import Flask, render_template, request
 from bs4 import BeautifulSoup
 from collections import Counter
 import json
-from analysis_json import get_inputs_X_test_enc, analysis, utils
+from analysis_json import get_inputs, analysis, utils
 from Input_Output_task import get_num_classes, get_idx, model_ELMo_H_combined, get_tests
 from keras import backend as K
 import tensorflow as tf
@@ -120,7 +120,7 @@ def index():
                     if j.tokenBeginIndex != 0:
                         if endchar != j.beginChar:
                             sent += " "
-                    sent += j.originalText
+                    sent += bytes(j.originalText, 'utf-8').decode('utf-8')
                     endchar = j.endChar
                 orig_sent.append(sent.strip())
 
@@ -157,7 +157,7 @@ def index():
                 print("--- %s seconds ---" % (time.time() - start_time))
                 print("POI2-P")
                 start_time = time.time()
-                inputs, X_test_enc = get_inputs_X_test_enc(X_test, dep_test, weight, model) #POI2
+                inputs = get_inputs(dep_test, weight, model) #POI2
                 print("--- %s seconds ---" % (time.time() - start_time))
                 #with tf.Session as sess:
                 #    init = tf.global_variables_initializer()
@@ -165,19 +165,17 @@ def index():
                 #    with graph.as_default():
                 #global graph
                 #with graph.as_default():
-                if len(X_test_enc) > 0:
-                    start_time = time.time()
-                    print("POI3")
-                    preds = model.predict(inputs) #POI3
-                    print(preds.shape)
-                    print(preds)
-                    print("--- %s seconds ---" % (time.time() - start_time))
-                else:
-                    preds = []
-                    #with session.graph.as_default():
+                
+                start_time = time.time()
+                print("POI3")
+                preds = model.predict(inputs) #POI3
+                print(preds.shape)
+                print(preds)
+                print("--- %s seconds ---" % (time.time() - start_time))
+                
                 start_time = time.time()
                 print("POI4")
-                annotated_sentences, mwe = analysis(sent_idx, preds, X_test_enc, doc, orig_sent) #POI4
+                annotated_sentences, mwe = analysis(sent_idx, preds, doc, orig_sent) #POI4
                 print("Done")
                 print("--- %s seconds ---" % (time.time() - start_time))
                 #print(results

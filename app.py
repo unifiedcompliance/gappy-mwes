@@ -96,7 +96,7 @@ def index():
         try:
             print("Reading in sentence to analyse MWEs")
             start_time = time.time()
-            sent = request.json()
+            sent = request.get_json()
             sent = sent['text']
             print("--- %s seconds ---" % (time.time() - start_time))
             #r = requests.get(url)

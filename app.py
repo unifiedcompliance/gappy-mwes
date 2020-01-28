@@ -184,9 +184,10 @@ def index():
                 sentences_list.append(annotated_sentences[0])
             
             sentences = json.dumps({'sentences': sentences_list},
-                                    sort_keys = False, indent = 4, separators = (',', ': '))
+                                    sort_keys = False, indent = 4, separators = (',', ': '), ensure_ascii=False)
             results = [mwe_list, sentences]
             print("--- %s SECONDS ---" % (time.time() - start1))
+    
     return sentences
     
 

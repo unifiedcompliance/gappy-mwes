@@ -33,8 +33,8 @@ def get_words_pos_upos_tags(predTest, doc):
     tags = []
     pos = []
     upos = []
-    characterOffsetBegin = []
-    characterOffsetEnd = []
+    #characterOffsetBegin = []
+    #characterOffsetEnd = []
     for i in predTest:
         #print(i[0],i[1],i[7])
         words.append(i[1])
@@ -42,30 +42,30 @@ def get_words_pos_upos_tags(predTest, doc):
         upos.append(i[4])
         tags.append(i[7])
     
-    for token in doc:
-        characterOffsetBegin.append(token.idx)
-        characterOffsetEnd.append(token.idx + len(token.text))
+    #for token in doc:
+    #    characterOffsetBegin.append(token.idx)
+    #    characterOffsetEnd.append(token.idx + len(token.text))
     
     
-    return words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd
+    return words, pos, upos, tags
 
 
-def extract_mwe_json(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd):
+def extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, characterOffsetEnd):
     vis = [True]*len(words)
     mwe_list = []
     for idx,val in enumerate(tags):
         name = words[idx]
         if val == 'B' and vis[idx]:
             mwe = [{"index":idx+1, "word":name, "pos":pos[idx], "upos":upos[idx], "mwe": val,
-                    "characterOffsetBegin": characterOffsetBegin[idx],
-                    "characterOffsetEnd": characterOffsetEnd[idx]}]
+                    "characterOffsetBegin": characterOffsetBegin[sent_idx][idx],
+                    "characterOffsetEnd": characterOffsetEnd[sent_idx][idx]}]
             #print(name, val)
             vis[idx] = False
             for j in range(idx+1, len(tags)):
                 if tags[j] == 'I':
                     mwe.append({"index":j+1, "word":words[j], "pos":pos[j], "upos":upos[j],
-                                "mwe": tags[j], "characterOffsetBegin": characterOffsetBegin[j],
-                                "characterOffsetEnd": characterOffsetEnd[j]})
+                                "mwe": tags[j], "characterOffsetBegin": characterOffsetBegin[sent_idx][j],
+                                "characterOffsetEnd": characterOffsetEnd[sent_idx][j]})
                     #print(words[j], tags[j])
                     vis[j] = False
                 else:
@@ -74,12 +74,12 @@ def extract_mwe_json(words, pos, upos, tags, characterOffsetBegin, characterOffs
             mwe_list.append(mwe)
         elif val=='I' and vis[idx]:
             mwe_list.append([{"index":idx+1, "word":name, "pos":pos[idx], "upos":upos[idx], 
-                              "mwe": val,"characterOffsetBegin": characterOffsetBegin[idx],
-                              "characterOffsetEnd": characterOffsetEnd[idx]}])
+                              "mwe": val,"characterOffsetBegin": characterOffsetBegin[sent_idx][idx],
+                              "characterOffsetEnd": characterOffsetEnd[sent_idx][idx]}])
             vis[idx] = False
     return mwe_list
 
-def analysis(sent_idx, preds, doc, orig_sent):
+def analysis(sent_idx, preds, doc, orig_sent, characterOffsetBegin, characterOffsetEnd):
 
     #print("[INFO] Getting predTest")
     #doc = get_doc(sent)
@@ -95,8 +95,8 @@ def analysis(sent_idx, preds, doc, orig_sent):
     mwe_list = extract_mwe(words, tags)
 
     #print("[INFO} Done")
-    words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd = get_words_pos_upos_tags(predTest[0], doc)
-    mwe_list_json = extract_mwe_json(words, pos, upos, tags, characterOffsetBegin, characterOffsetEnd)  
+    words, pos, upos, tags = get_words_pos_upos_tags(predTest[0], doc)
+    mwe_list_json = extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, characterOffsetEnd)  
         
     
     annotated_sentences = []
@@ -113,18 +113,17 @@ def analysis(sent_idx, preds, doc, orig_sent):
         pos = token.pos_
         upos = token.tag_
         #feats = nlp.vocab.morphology.tag_map[upos]
-        if len(preds) > 0:
-            mwe_tag = predTest[0][index-1][7]
-        else:
-            mwe_tag = ""
+        mwe_tag = predTest[0][index-1][7]
         dep = token.dep_
         governor = token.head.i + 1
         governorGloss = str(token.head)
-        characterOffsetBegin = token.idx
-        characterOffsetEnd = characterOffsetBegin + len(word)
+        #characterOffsetBegin = token.idx
+        #characterOffsetEnd = characterOffsetBegin + len(word)
         #print("{} - {} -> {}".format(word, characterOffsetBegin, characterOffsetEnd))
         #print("{} - {} -> {}".format(word, token.i, token.))
-        tokens.append({'index': index, 'word': word, 'lemma': lemma, 'characterOffsetBegin':characterOffsetBegin, 'characterOffsetEnd':characterOffsetEnd, 'pos': pos, 'upos': upos,'mwe':mwe_tag})
+        #print(characterOffsetBegin[sent_idx])
+        #print(characterOffsetEnd[sent_idx])
+        tokens.append({'index': index, 'word': word, 'lemma': lemma, 'characterOffsetBegin':characterOffsetBegin[sent_idx][index-1], 'characterOffsetEnd':characterOffsetEnd[sent_idx][index-1], 'pos': pos, 'upos': upos,'mwe':mwe_tag})
         deps.append({'dep': dep, 'governor': governor, 'governorGloss': governorGloss, 'dependent': index, 'dependentGloss': word})
         #if mwe_tag == 'B' or mwe_tag == 'I':
         #    mwe.append({'index': index, 'word': word,'mwe':mwe_tag})

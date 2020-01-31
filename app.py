@@ -113,6 +113,8 @@ def index():
             sentence = ann.sentence
             tokens = []
             orig_sent = []
+            beginCharOffset = []
+            endCharOffset = []
 
             for i in sentence:
                 sent = ""
@@ -131,6 +133,16 @@ def index():
                     token.append(j.word)
                 tokens.append(token)
             
+            for i in sentence:
+                beChar = []
+                enChar = []
+                offset = i.characterOffsetBegin
+                for j in i.token:
+                    beChar.append(j.beginChar - offset)
+                    enChar.append(j.endChar - offset)
+                beginCharOffset.append(beChar)
+                endCharOffset.append((enChar))
+
             #sent = ' '.join([i for i in tokens])
             sents = []
             
@@ -176,7 +188,7 @@ def index():
                 
                 start_time = time.time()
                 print("POI4")
-                annotated_sentences, mwe = analysis(sent_idx, preds, doc, orig_sent) #POI4
+                annotated_sentences, mwe = analysis(sent_idx, preds, doc, orig_sent, beginCharOffset, endCharOffset) #POI4
                 print("Done")
                 print("--- %s seconds ---" % (time.time() - start_time))
                 #print(results

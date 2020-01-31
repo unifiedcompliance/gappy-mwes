@@ -1,4 +1,5 @@
 from Input_Output_task import inputoutput, get_num_classes, get_idx, _predTest, get_words_tags, extract_mwe
+from spacy_nounchunks import nounChunks
 import time
 
 
@@ -97,7 +98,9 @@ def analysis(sent_idx, preds, doc, orig_sent, characterOffsetBegin, characterOff
     #print("[INFO} Done")
     words, pos, upos, tags = get_words_pos_upos_tags(predTest[0], doc)
     mwe_list_json = extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, characterOffsetEnd)  
-        
+    nc_list, noun_chunks = nounChunks(orig_sent[sent_idx])
+    mwe_list_json.extend(noun_chunks)
+    mwe_list.extend(nc_list)
     
     annotated_sentences = []
     tokens = []

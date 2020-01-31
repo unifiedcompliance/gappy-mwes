@@ -53,7 +53,7 @@ def get_words_pos_upos_tags(predTest, doc):
 
 def extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, characterOffsetEnd):
     vis = [True]*len(words)
-    mwe_list = []
+    mwe_list = {}
     for idx,val in enumerate(tags):
         name = words[idx]
         if val == 'B' and vis[idx]:
@@ -64,6 +64,7 @@ def extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, cha
             vis[idx] = False
             for j in range(idx+1, len(tags)):
                 if tags[j] == 'I':
+                    name += (" " + words[j])
                     mwe.append({"index":j+1, "word":words[j], "pos":pos[j], "upos":upos[j],
                                 "mwe": tags[j], "characterOffsetBegin": characterOffsetBegin[sent_idx][j],
                                 "characterOffsetEnd": characterOffsetEnd[sent_idx][j]})
@@ -72,16 +73,22 @@ def extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, cha
                 else:
                     break
             #print(mwe)
-            mwe_list.append(mwe)
+            mwe_list[name] = mwe
         elif val=='I' and vis[idx]:
-            mwe_list.append([{"index":idx+1, "word":name, "pos":pos[idx], "upos":upos[idx], 
+            mwe_list[name] = [{"index":idx+1, "word":name, "pos":pos[idx], "upos":upos[idx], 
                               "mwe": val,"characterOffsetBegin": characterOffsetBegin[sent_idx][idx],
-                              "characterOffsetEnd": characterOffsetEnd[sent_idx][idx]}])
+                              "characterOffsetEnd": characterOffsetEnd[sent_idx][idx]}]
             vis[idx] = False
     return mwe_list
 
-def check(string1, string2): 
-    if (string1.find(string2) == -1) or (string2.find(string1) == -1): 
+def mwe_is_a_substring_of_nounchunk(string1, string2): 
+    if (string1.find(string2) == -1): 
+        return False 
+    else: 
+        return True
+
+def nounchunk_is_a_substring_of_mwe(string1, string2): 
+    if (string1.find(string2) == -1): 
         return False 
     else: 
         return True
@@ -107,29 +114,43 @@ def analysis(sent_idx, preds, doc, orig_sent, characterOffsetBegin, characterOff
 
     #print("[INFO} Done")
     words, pos, upos, tags = get_words_pos_upos_tags(predTest[0], doc)
-    mwe_list_json = extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, characterOffsetEnd)  
+    mwe_dict = extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, characterOffsetEnd)  
     noun_chunks_list, noun_chunk_mwe, noun_chunk_indices = nounChunks(orig_sent[sent_idx])
     
     same_mwe = []
+    mwe_same = []
     for mwe in mwe_list:
         for nc in noun_chunks_list:
             if mwe == nc:
                 print("Found same mwe and noun chunk  {}".format(nc))
                 same_mwe.append(nc)
-            elif check(mwe,nc):
-                print("Found subsets {} {}".format(mwe, nc))
+            elif nounchunk_is_a_substring_of_mwe(mwe, nc):
+                print("Found nounchunk is a subset of mwe {} {}".format(mwe, nc))
                 same_mwe.append(nc)
-    
+            elif mwe_is_a_substring_of_nounchunk(nc,mwe):
+                print("Found mwe is a subset of nounchunk {} {}".format(mwe, nc))
+                mwe_same.append(mwe)
+                
+    mwe_list_ref = []
+    for mwe in mwe_list:
+        if mwe not in mwe_same:
+            mwe_list_ref.append(mwe)
+        else:
+            del mwe_dict[mwe]
+
     for mwe in same_mwe:
         del noun_chunk_mwe[mwe]
 
+    mwe_list_json = []
+    for k,v in mwe_dict.items():
+        mwe_list_json.append(v)
 
     for k,v in noun_chunk_mwe.items():
         mwe_list_json.append(v)
     
     for nc in noun_chunks_list:
         if nc not in same_mwe:
-            mwe_list.append(nc)
+            mwe_list_ref.append(nc)
 
     annotated_sentences = []
     tokens = []
@@ -170,5 +191,5 @@ def analysis(sent_idx, preds, doc, orig_sent, characterOffsetBegin, characterOff
         
     annotated_sentences.append({'index': sent_idx,'sentence':orig_sent[sent_idx], 'basicDependencies': deps, 'tokens': tokens, 'mwe': mwe_list_json})
 
-    return annotated_sentences, mwe_list
+    return annotated_sentences, mwe_list_ref
 

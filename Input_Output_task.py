@@ -197,20 +197,24 @@ def get_words_tags(predTest):
 
 def extract_mwe(words, tags):
     mwe_list = []
+    mwe_indices = {}
     for idx,val in enumerate(tags):
         if val == 'B':
             name = words[idx]
             mwe = name
+            mwe_index = [idx+1]
             #print(name, val)
             for j in range(idx+1, len(tags)):
                 if tags[j] == 'I':
                     mwe += " " + words[j]
                     #print(words[j], tags[j])
+                    mwe_index.append(j+1)
                 else:
                     break
             if len(mwe.split(" ")) > 1:
                 mwe_list.append(mwe)
-    return mwe_list
+                mwe_indices[mwe] = mwe_index
+    return mwe_list, mwe_indices
 
 def embed_elmo2(module):
     with tf.Graph().as_default():

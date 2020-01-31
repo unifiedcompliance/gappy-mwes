@@ -80,6 +80,14 @@ def extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, cha
             vis[idx] = False
     return mwe_list
 
+def check(string1, string2): 
+    if (string1.find(string2) == -1) or (string2.find(string1) == -1): 
+        return False 
+    else: 
+        return True
+            
+
+
 def analysis(sent_idx, preds, doc, orig_sent, characterOffsetBegin, characterOffsetEnd):
 
     #print("[INFO] Getting predTest")
@@ -93,15 +101,36 @@ def analysis(sent_idx, preds, doc, orig_sent, characterOffsetBegin, characterOff
     predTest = _predTest(preds, doc, idx2l)
 
     words, tags = get_words_tags(predTest[0])
-    mwe_list = extract_mwe(words, tags)
+    print(words)
+    print(tags)
+    mwe_list, mwe_indices = extract_mwe(words, tags)
 
     #print("[INFO} Done")
     words, pos, upos, tags = get_words_pos_upos_tags(predTest[0], doc)
     mwe_list_json = extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, characterOffsetEnd)  
-    nc_list, noun_chunks = nounChunks(orig_sent[sent_idx])
-    mwe_list_json.extend(noun_chunks)
-    mwe_list.extend(nc_list)
+    noun_chunks_list, noun_chunk_mwe, noun_chunk_indices = nounChunks(orig_sent[sent_idx])
     
+    same_mwe = []
+    for mwe in mwe_list:
+        for nc in noun_chunks_list:
+            if mwe == nc:
+                print("Found same mwe and noun chunk  {}".format(nc))
+                same_mwe.append(nc)
+            elif check(mwe,nc):
+                print("Found subsets {} {}".format(mwe, nc))
+                same_mwe.append(nc)
+    
+    for mwe in same_mwe:
+        del noun_chunk_mwe[mwe]
+
+
+    for k,v in noun_chunk_mwe.items():
+        mwe_list_json.append(v)
+    
+    for nc in noun_chunks_list:
+        if nc not in same_mwe:
+            mwe_list.append(nc)
+
     annotated_sentences = []
     tokens = []
     deps = []

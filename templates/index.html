@@ -35,8 +35,9 @@
                 <h2>Multiword Expressions</h2>
                 <br>
                 <div id="results">
-                  {% for i in results[0] %}
-                    {% for mwe in i %}
+                  {% for mwe_list in results[0] %}
+                    <pre style="color:rgb(29, 177, 78); font-weight:bold; max-width: 250px; background-color:rgb(199, 212, 16);" > Sentence Index - {{ loop.index }}</pre>
+                    {% for mwe in mwe_list %}
                       <pre style="color:rgb(26, 37, 37); font-weight:bold; max-width: 250px; background-color:rgb(199, 212, 16);" > {{ mwe }}</pre>
                     {% endfor %}
                   {% endfor %}

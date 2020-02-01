@@ -232,29 +232,29 @@ def embed_elmo2(module):
     return lambda x: session.run(embeddings, {sentences: x})
 
 def elmo_vectors(x):
-    print("POI2 - B - F - A")
+    #print("POI2 - B - F - A")
     start_time = time.time() 
     embeddings = elmo(x, signature="default", as_dict=True)["elmo"]
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
-    print("POI2 - B - F - B")
+    #print("POI2 - B - F - B")
     start_time = time.time()
     #x = sess.run(embeddings)
     #print("--- %s seconds ---" % (time.time() - start_time))
     #return x
     
     with tf.Session() as sess:
-        print("--- %s seconds ---" % (time.time() - start_time))
+        #print("--- %s seconds ---" % (time.time() - start_time))
         start_time = time.time()
         sess.run([tf.global_variables_initializer(), tf.tables_initializer()])
-        print("--- %s seconds ---" % (time.time() - start_time))
+        #print("--- %s seconds ---" % (time.time() - start_time))
         #start_time = time.time()
         #sess.run(tf.tables_initializer())
         #print("--- %s seconds ---" % (time.time() - start_time))
         # return average of ELMo features
         start_time = time.time()
         x = sess.run(embeddings)
-        print("--- %s seconds ---" % (time.time() - start_time))
+        #print("--- %s seconds ---" % (time.time() - start_time))
         return x
 
 def get_tests(doc):
@@ -330,25 +330,25 @@ def inputoutput(dep_test, idx2l, weight, max_length = 511, input_dim = 1024):
     #weight = embed_fn([sent])
     """
     start_time = time.time()
-    print(weight.shape)
-    print(weight[0].shape)
+    #print(weight.shape)
+    #print(weight[0].shape)
     lim, elmo_n = weight[0].shape
-    print(lim, elmo_n)
+    #print(lim, elmo_n)
     weight = weight[0].reshape(1, lim, input_dim)
-    print(weight.shape)
+    #print(weight.shape)
     test_weights = np.zeros((1, max_length, input_dim))
     test_weights[:, :lim, :] = weight
-    print(test_weights.shape)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print(test_weights.shape)
+    #print("--- %s seconds ---" % (time.time() - start_time))
     #test_weights = load_elmo(X_test, max_length)
 
-    print("POI2 - B - G")
+    #print("POI2 - B - G")
     start_time = time.time()   
     test_adjacency = load_adjacency([dep_test[0]], 1, max_length)
     test_adjacency_matrices = [test_adjacency]
     inputs = [test_weights]
     inputs += test_adjacency_matrices
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("--- %s seconds ---" % (time.time() - start_time))
     #input_dim = len(test_weights[0][0])
     #model = model_ELMo_H_combined(max_length, input_dim, n_classes)
     return inputs

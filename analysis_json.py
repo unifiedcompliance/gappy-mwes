@@ -17,15 +17,15 @@ def utils():
 def get_inputs(dep_test, weight, model):
 
     #doc = get_doc(sent)
-    print("POI2 - A")
+    #print("POI2 - A")
     start_time = time.time()
     n_classes, w2idx, idx2l, max_length, input_dim = utils()
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("--- %s seconds ---" % (time.time() - start_time))
     #print("[INFO] Getting inputs and X_test enc")
-    print("POI2 - B")
+    #print("POI2 - B")
     start_time = time.time()
     inputs = inputoutput(dep_test, idx2l, weight, max_length, input_dim)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("--- %s seconds ---" % (time.time() - start_time))
     #print("[INFO] Done")
     return inputs
 
@@ -74,11 +74,11 @@ def extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, cha
                     break
             #print(mwe)
             mwe_list[name] = mwe
-        elif val=='I' and vis[idx]:
-            mwe_list[name] = [{"index":idx+1, "word":name, "pos":pos[idx], "upos":upos[idx], 
-                              "mwe": val,"characterOffsetBegin": characterOffsetBegin[sent_idx][idx],
-                              "characterOffsetEnd": characterOffsetEnd[sent_idx][idx]}]
-            vis[idx] = False
+        #elif val=='I' and vis[idx]:
+        #    mwe_list[name] = [{"index":idx+1, "word":name, "pos":pos[idx], "upos":upos[idx], 
+        #                      "mwe": val,"characterOffsetBegin": characterOffsetBegin[sent_idx][idx],
+        #                      "characterOffsetEnd": characterOffsetEnd[sent_idx][idx]}]
+        #    vis[idx] = False
     return mwe_list
 
 def mwe_is_a_substring_of_nounchunk(string1, string2): 
@@ -108,8 +108,6 @@ def analysis(sent_idx, preds, doc, orig_sent, characterOffsetBegin, characterOff
     predTest = _predTest(preds, doc, idx2l)
 
     words, tags = get_words_tags(predTest[0])
-    print(words)
-    print(tags)
     mwe_list, mwe_indices = extract_mwe(words, tags)
 
     #print("[INFO} Done")
@@ -117,6 +115,13 @@ def analysis(sent_idx, preds, doc, orig_sent, characterOffsetBegin, characterOff
     mwe_dict = extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, characterOffsetEnd)  
     noun_chunks_list, noun_chunk_mwe, noun_chunk_indices = nounChunks(orig_sent[sent_idx])
     
+    print("MWE detected by neural model")
+    print(mwe_list)
+
+    print("Noun chunks detected")
+    print(noun_chunks_list)
+
+
     same_mwe = []
     mwe_same = []
     for mwe in mwe_list:

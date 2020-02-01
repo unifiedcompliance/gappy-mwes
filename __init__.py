@@ -34,14 +34,14 @@ client = CoreNLPClient(annotators=['tokenize','ssplit'], timeout=60000, memory='
 def embed_elmo2():
     with tf.Graph().as_default():
         sentences = tf.placeholder(tf.string)
-        print("POI2 - B - F - A")
+        #print("POI2 - B - F - A")
         start_time = time.time() 
         embed = hub.Module('module/module_elmo3')
-        print("--- %s seconds ---" % (time.time() - start_time))
-        print("POI2 - B - F - B")
+        #print("--- %s seconds ---" % (time.time() - start_time))
+        #print("POI2 - B - F - B")
         start_time = time.time()
         embeddings = embed(sentences, signature="default", as_dict=True)["elmo"]
-        print("--- %s seconds ---" % (time.time() - start_time))
+        #print("--- %s seconds ---" % (time.time() - start_time))
         session = tf.train.MonitoredSession()
 
     return lambda x: session.run(embeddings, {sentences: x})
@@ -51,11 +51,11 @@ embed_fn = embed_elmo2()
 def get_nlp():
     start_time = time.time()
     snlp = stanfordnlp.Pipeline(lang="en", treebank='en_lines', use_gpu=False, tokenize_pretokenized=True)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("--- %s seconds ---" % (time.time() - start_time))
     global nlp
     start_time = time.time()
     nlp = StanfordNLPLanguage(snlp)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("--- %s seconds ---" % (time.time() - start_time))
     #start_time = time.time()
     #doc = nlp(sent)
     #print("--- %s seconds ---" % (time.time() - start_time))
@@ -63,7 +63,7 @@ def get_nlp():
 def get_doc(sent):
     start_time = time.time()
     doc = nlp(sent)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("--- %s seconds ---" % (time.time() - start_time))
     return doc
 
 def load_model():
@@ -94,10 +94,10 @@ def index():
     if request.method == "POST":
         start1 = time.time()
         try:
-            print("Reading in sentence to analyse MWEs")
-            start_time = time.time()
+            #print("Reading in sentence to analyse MWEs")
+            #start_time = time.time()
             sent = request.form['text']
-            print("--- %s seconds ---" % (time.time() - start_time))
+            #print("--- %s seconds ---" % (time.time() - start_time))
             #r = requests.get(url)
             #print(sent)
         except:
@@ -149,29 +149,32 @@ def index():
             for token in tokens:
                 sents.append(' '.join([i for i in token]))
             
-            start_time = time.time()
-            print("Getting in the doc tokens and dictionary")
-            print("POI1")
+            #start_time = time.time()
+            #print("Getting in the doc tokens and dictionary")
+            #print("POI1")
             mwe_list = []
             sentences_list = []
             for sent_idx,sent in enumerate(sents):
+                print("Sentence Index: {}".format(sent_idx))
+                print(orig_sent[sent_idx])
+                start_time = time.time()
                 doc = get_doc(sent) #POI1
-                print("--- %s seconds ---" % (time.time() - start_time))
+                #print("--- %s seconds ---" % (time.time() - start_time))
                 #print(model.summary())
                 X_test, dep_test = get_tests(doc)
-                start_time = time.time()
-                print("Getting predictions")
+                #start_time = time.time()
+                #print("Getting predictions")
                 #model._make_predict_function()
-                print("POI2")
-                start_time = time.time()
+                #print("POI2")
+                #start_time = time.time()
                 for sent_toks in X_test:
                     sent = " ".join(sent_toks)
                 weight = embed_fn([sent])
-                print("--- %s seconds ---" % (time.time() - start_time))
-                print("POI2-P")
-                start_time = time.time()
+                #print("--- %s seconds ---" % (time.time() - start_time))
+                #print("POI2-P")
+                #start_time = time.time()
                 inputs = get_inputs(dep_test, weight, model) #POI2
-                print("--- %s seconds ---" % (time.time() - start_time))
+                #print("--- %s seconds ---" % (time.time() - start_time))
                 #with tf.Session as sess:
                 #    init = tf.global_variables_initializer()
                 #    sess.run(init)
@@ -179,25 +182,26 @@ def index():
                 #global graph
                 #with graph.as_default():
                 
-                start_time = time.time()
-                print("POI3")
+                #start_time = time.time()
+                #print("POI3")
                 preds = model.predict(inputs) #POI3
-                print(preds.shape)
-                print(preds)
-                print("--- %s seconds ---" % (time.time() - start_time))
+                #print(preds.shape)
+                #print(preds)
+                #print("--- %s seconds ---" % (time.time() - start_time))
                 
-                start_time = time.time()
-                print("POI4")
+                #start_time = time.time()
+                #print("POI4")
                 annotated_sentences, mwe = analysis(sent_idx, preds, doc, orig_sent, beginCharOffset, endCharOffset) #POI4
-                print("Done")
-                print("--- %s seconds ---" % (time.time() - start_time))
+                #print("Done")
+                #print("--- %s seconds ---" % (time.time() - start_time))
                 #print(results
                 mwe_list.append(mwe)
                 sentences_list.append(annotated_sentences[0])
+                print("--- %s seconds ---" % (time.time() - start_time))
             
             sentences = json.dumps({'sentences': sentences_list},
                                     sort_keys = False, indent = 4, separators = (',', ': '), ensure_ascii=False)
-            print(sentences)
+            #print(sentences)
             results = [mwe_list, sentences]
             print("--- %s SECONDS ---" % (time.time() - start1))
     return render_template('index.html', errors=errors, results=results)

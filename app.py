@@ -97,7 +97,13 @@ def index():
             #print("Reading in sentence to analyse MWEs")
             #start_time = time.time()
             sent = request.get_json()
+            params = request.args
+            #print(sent)
             sent = sent['text']
+            drop_adjectives = (params['drop_adjectives'] == 'True')
+            drop_determiners = (params['drop_determiners'] == 'True')
+            #drop_adjectives = sent["drop_adjectives"]
+            #drop_determiners = sent["drop_determiners"]
             #print("--- %s seconds ---" % (time.time() - start_time))
             #r = requests.get(url)
             #print(sent)
@@ -192,7 +198,7 @@ def index():
                 
                 #start_time = time.time()
                 #print("POI4")
-                annotated_sentences, mwe = analysis(sent_idx, preds, doc, orig_sent, beginCharOffset, endCharOffset) #POI4
+                annotated_sentences, mwe = analysis(sent_idx, preds, doc, orig_sent, beginCharOffset, endCharOffset, drop_adjectives=drop_adjectives, drop_determiners=drop_determiners) #POI4
                 #print("Done")
                 #print("--- %s seconds ---" % (time.time() - start_time))
                 #print(results

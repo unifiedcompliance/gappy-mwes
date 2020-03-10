@@ -95,7 +95,7 @@ def nounchunk_is_a_substring_of_mwe(string1, string2):
             
 
 
-def analysis(sent_idx, preds, doc, orig_sent, characterOffsetBegin, characterOffsetEnd):
+def analysis(sent_idx, preds, doc, orig_sent, characterOffsetBegin, characterOffsetEnd, drop_adjectives=True, drop_determiners=True):
 
     #print("[INFO] Getting predTest")
     #doc = get_doc(sent)
@@ -113,7 +113,7 @@ def analysis(sent_idx, preds, doc, orig_sent, characterOffsetBegin, characterOff
     #print("[INFO} Done")
     words, pos, upos, tags = get_words_pos_upos_tags(predTest[0], doc)
     mwe_dict = extract_mwe_json(words, pos, upos, tags, sent_idx, characterOffsetBegin, characterOffsetEnd)  
-    noun_chunks_list, noun_chunk_mwe, noun_chunk_indices = nounChunks(orig_sent[sent_idx])
+    noun_chunks_list, noun_chunk_mwe, noun_chunk_indices = nounChunks(orig_sent[sent_idx], drop_adjectives, drop_determiners)
     
     print("MWE detected by neural model")
     print(mwe_list)

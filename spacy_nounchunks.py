@@ -1,5 +1,6 @@
 import spacy
 import textacy
+from spacy.parts_of_speech import CONJ, DET, NOUN, VERB, ADJ, PROPN
 
 def mwe(text: str, start: int, start_char: int, end_char: int, pos: str, upos: str, mwe_tag:str):
   chunk = {
@@ -14,13 +15,14 @@ def mwe(text: str, start: int, start_char: int, end_char: int, pos: str, upos: s
   return chunk
 
 
-def nounChunks(text):
+def nounChunks(text, drop_adjectives, drop_determiners):
     nlp = spacy.load("en_core_web_sm")
     doc = nlp(text)
     #mwes = []
     noun_chunk_mwe = {}
     noun_chunk_indices = {}
-    phrases = textacy.extract.noun_chunks(doc, drop_determiners=True)
+    #phrases = textacy.extract.noun_chunks(doc, drop_determiners=True)
+    phrases = no_adjective_nounChunks_textacy(doc, drop_adjectives, drop_determiners)
     noun_chunks_list = []
     for n in phrases:  
       span = doc[n.start:n.end]
@@ -39,3 +41,15 @@ def nounChunks(text):
           noun_chunk_indices[n.text] = indices
     
     return noun_chunks_list, noun_chunk_mwe, noun_chunk_indices
+
+
+def no_adjective_nounChunks_textacy(doc, drop_adjectives, drop_determiners):
+    if drop_determiners is True:
+        ncs = textacy.extract.noun_chunks(doc, drop_determiners=drop_determiners)
+    else:
+        ncs = doc.noun_chunks
+    if drop_adjectives is True:
+        nounchunks = (nc if nc[0].pos != ADJ else nc[1:] for nc in ncs)
+    else:
+        nounchunks = ncs
+    return nounchunks

@@ -169,10 +169,8 @@ def predict(tokens, model, tokenizer):
                 out_label_list[i].append(label_map[out_label_ids[i, j]])
                 preds_list[i].append(label_map[preds[i, j]])
 
-    predictions = []
     for i,j in enumerate(tokens):
         for k in list(zip(j, preds_list[i])):
-            predictions.append(k)
             print(k)
 
-    return predictions
+    return preds_list

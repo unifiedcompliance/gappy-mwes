@@ -26,8 +26,7 @@ from transformers import (
 
 app = Flask(__name__)
 
-BERT_MODEL='bert-base-multilingual-cased'
-OUTPUT_DIR='../transformer/transformers/examples/unified_compliance_512_50_18022020/'
+OUTPUT_DIR='bert_512/'
 
 
 os.environ['CORENLP_HOME'] = '/home/sritanu/stanford-corenlp-full-2018-10-05'
@@ -157,4 +156,4 @@ if __name__ == '__main__':
     load_model()
     print("Model loaded")
     #app.debug = True
-    app.run(threaded=False, host='0.0.0.0')
+    app.run(threaded=False, host='0.0.0.0', port=5001)

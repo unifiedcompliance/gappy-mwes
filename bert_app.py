@@ -111,8 +111,6 @@ def index():
                 beginCharOffset.append(beChar)
                 endCharOffset.append((enChar))
 
-            print(beginCharOffset)
-            print(endCharOffset)
 
             predictions = predict(tokens, model, tokenizer)
 

@@ -135,7 +135,11 @@ def analysis(sent_idx, preds, doc, orig_sent, characterOffsetBegin, characterOff
             elif mwe_is_a_substring_of_nounchunk(nc,mwe):
                 print("Found mwe is a subset of nounchunk {} {}".format(mwe, nc))
                 mwe_same.append(mwe)
-                
+
+    
+    same_mwe = list(set(same_mwe))
+    mwe_same = list(set(mwe_same))
+    
     mwe_list_ref = []
     for mwe in mwe_list:
         if mwe not in mwe_same:

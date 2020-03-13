@@ -35,7 +35,7 @@ labels = ['B', 'I', 'O']
 pad_token_label_id = CrossEntropyLoss().ignore_index
 
 os.environ['CORENLP_HOME'] = '/home/sritanu/stanford-corenlp-full-2018-10-05'
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 client = CoreNLPClient(annotators=['tokenize','ssplit'], timeout=100000, memory='32G')
 
@@ -45,9 +45,9 @@ def load_model():
     tokenizer = tokenizer_class.from_pretrained(OUTPUT_DIR, do_lower_case=False)
     global model
     model = model_class.from_pretrained(OUTPUT_DIR)
-    global device
-    device = torch.device("cuda")
-    model.to(device)
+    #global device
+    #device = torch.device("cuda")
+    #model.to(device)
 
 
 class Input(object):
@@ -84,7 +84,6 @@ def convert_input_to_features(examples, max_seq_length, tokenizer, pad_token=0,
                               sequence_a_segment_id=0, mask_padding_with_zero=True):
 
     label_map = {label: i for i, label in enumerate(labels)}
-
     features = []
     for (ex_index, example) in enumerate(examples):
 
@@ -138,6 +137,7 @@ def convert_input_to_features(examples, max_seq_length, tokenizer, pad_token=0,
             segment_ids += [pad_token_segment_id] * padding_length
             label_ids += [pad_token_label_id] * padding_length
 
+
         assert len(input_ids) == max_seq_length
         assert len(input_mask) == max_seq_length
         assert len(segment_ids) == max_seq_length
@@ -179,7 +179,9 @@ def predict(tokens, tokenizer):
 
     for i,batch in enumerate(eval_dataloader):
 
-        batch = tuple(t.to(device) for t in batch)
+        #batch = tuple(t.to(device) for t in batch)
+        batch = tuple(t for t in batch)
+
         with torch.no_grad():
             inputs = {"input_ids": batch[0], "attention_mask": batch[1], "labels": batch[3]}
             inputs["token_type_ids"] = batch[2]
@@ -191,6 +193,7 @@ def predict(tokens, tokenizer):
             else:
                 preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
                 out_label_ids = np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
+
 
     preds = np.argmax(preds, axis=2)
 
